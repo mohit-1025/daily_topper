@@ -1,0 +1,194 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 250 45% 98%;
+    --foreground: 245 40% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 245 40% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 245 40% 12%;
+    --primary: 249 82% 59%;
+    --primary-foreground: 0 0% 100%;
+    --primary-soft: 250 85% 96%;
+    --secondary: 250 35% 95%;
+    --secondary-foreground: 247 30% 25%;
+    --muted: 250 30% 95.5%;
+    --muted-foreground: 246 14% 46%;
+    --accent: 38 92% 50%;
+    --accent-foreground: 30 60% 12%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 152 60% 36%;
+    --warning: 38 92% 46%;
+    --info: 217 91% 58%;
+    --border: 250 30% 90%;
+    --input: 250 30% 88%;
+    --ring: 249 82% 59%;
+    --radius: 1rem;
+    --sidebar: 0 0% 100%;
+  }
+
+  .dark {
+    --background: 250 30% 6.5%;
+    --foreground: 250 25% 96%;
+    --card: 250 26% 10%;
+    --card-foreground: 250 25% 96%;
+    --popover: 250 26% 11%;
+    --popover-foreground: 250 25% 96%;
+    --primary: 251 91% 71%;
+    --primary-foreground: 251 45% 10%;
+    --primary-soft: 250 40% 17%;
+    --secondary: 250 22% 16%;
+    --secondary-foreground: 250 20% 90%;
+    --muted: 250 22% 15%;
+    --muted-foreground: 248 14% 65%;
+    --accent: 38 92% 55%;
+    --accent-foreground: 30 60% 10%;
+    --destructive: 0 70% 58%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 152 55% 48%;
+    --warning: 38 92% 58%;
+    --info: 217 91% 66%;
+    --border: 250 20% 19%;
+    --input: 250 20% 22%;
+    --ring: 251 91% 71%;
+    --sidebar: 250 28% 8%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display tracking-tight;
+  }
+
+  ::selection {
+    @apply bg-primary/20;
+  }
+
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  input[type='range'] {
+    @apply accent-primary;
+  }
+}
+
+@layer components {
+  .surface {
+    @apply rounded-2xl border border-border bg-card shadow-soft;
+  }
+
+  .surface-hover {
+    @apply transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lift;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary via-violet-500 to-fuchsia-500 bg-clip-text text-transparent;
+  }
+
+  .mesh-bg {
+    background-image:
+      radial-gradient(at 18% 22%, hsl(var(--primary) / 0.14) 0px, transparent 45%),
+      radial-gradient(at 82% 10%, rgb(217 70 239 / 0.1) 0px, transparent 42%),
+      radial-gradient(at 62% 80%, rgb(245 158 11 / 0.09) 0px, transparent 40%);
+  }
+
+  .skeleton {
+    @apply relative overflow-hidden rounded-lg bg-muted;
+  }
+
+  .skeleton::after {
+    @apply absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/40 to-transparent;
+    content: '';
+  }
+
+  .dark .skeleton::after {
+    @apply via-white/10;
+  }
+
+  .safe-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 0px);
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .status-scheduled {
+    @apply border-info/30 bg-info/10 text-info;
+  }
+  .status-running {
+    @apply border-primary/30 bg-primary/10 text-primary;
+  }
+  .status-done {
+    @apply border-success/30 bg-success/10 text-success;
+  }
+  .status-skipped {
+    @apply border-warning/40 bg-warning/10 text-warning;
+  }
+  .status-missed {
+    @apply border-destructive/30 bg-destructive/10 text-destructive;
+  }
+  .status-exam {
+    @apply border-violet-500/30 bg-violet-500/10 text-violet-500;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .pb-safe-nav {
+    padding-bottom: calc(84px + env(safe-area-inset-bottom));
+  }
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+  .print-area {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    padding: 24px;
+    background: white;
+    color: #111;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
