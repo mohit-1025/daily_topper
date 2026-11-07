@@ -6,30 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta
       name="description"
-      content="Daily Topper — your personal AI study coach. Plan your day, master every topic, and walk into exams with confidence."
+      content="Daily Topper is a paper-style study planner. Paste your syllabus, pick an exam date, and get a day-by-day plan that moves when life gets in the way."
     />
-    <meta name="theme-color" content="#4f46e5" />
+    <meta name="theme-color" content="#fbfaf4" />
+    <meta name="color-scheme" content="light" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Patrick+Hand&display=swap"
       rel="stylesheet"
     />
-    <script>
-      ;(() => {
-        try {
-          const stored = localStorage.getItem('dt-theme') || 'system'
-          const dark =
-            stored === 'dark' ||
-            (stored === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
-          document.documentElement.classList.toggle('dark', dark)
-          document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
-        } catch {
-          /* ignore */
-        }
-      })()
-    </script>
-    <title>Daily Topper — Your AI Study Coach</title>
+    <title>Daily Topper — Your Study Notebook</title>
   </head>
   <body>
     <div id="root"></div>

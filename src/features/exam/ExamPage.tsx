@@ -8,9 +8,7 @@ import {
   ArrowRight,
   BookOpen,
   CalendarDays,
-  CheckCircle2,
   Clock,
-  GraduationCap,
   Loader2,
   Plus,
   ShieldCheck,
@@ -20,9 +18,10 @@ import {
   X,
 } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
+import { CalendarDoodle, PencilDoodle, TickDoodle } from '@/components/shared/doodles'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Input, Label, Textarea } from '@/components/ui/input'
 import { Progress } from '@/components/ui/misc'
@@ -154,7 +153,7 @@ export function ExamPage() {
     if (kind === 'image') {
       pushToast(
         'Image received',
-        'Offline OCR is unavailable — paste the schedule text below and press Parse with AI.',
+        'Offline OCR is unavailable — paste the schedule text below and press Read the schedule.',
         'info',
       )
       return
@@ -164,7 +163,7 @@ export function ExamPage() {
       const text = await extractUploadText(file, kind, settings.language)
       if (!text?.trim()) throw new Error('empty')
       setScheduleText(text.slice(0, 4000))
-      pushToast('Schedule text extracted', 'Review it, then press Parse with AI.', 'success')
+      pushToast('Schedule text extracted', 'Review it, then press Read the schedule.', 'success')
     } catch {
       pushToast('Could not read this file', 'Paste the schedule text below instead.', 'warning')
     } finally {
@@ -205,9 +204,9 @@ export function ExamPage() {
           }
         }),
       )
-      pushToast('Schedule parsed', 'Check every row before entering Exam Mode.', 'success')
+      pushToast('Schedule read', 'Check every row before entering Exam Mode.', 'success')
     } catch {
-      pushToast('Could not parse the schedule', 'Add the rows manually below.', 'error')
+      pushToast('Could not read the schedule', 'Add the rows manually below.', 'error')
     } finally {
       setParsing(false)
     }
@@ -256,8 +255,10 @@ export function ExamPage() {
 
   const archive = [...examMode.archive].reverse()
 
+  const rules = [t('exam.rule1'), t('exam.rule2'), t('exam.rule3'), t('exam.rule4'), t('exam.rule5')]
+
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <PageHeader
         eyebrow={longDate(new Date(), settings.language)}
         title={t('exam.title')}
@@ -287,78 +288,78 @@ export function ExamPage() {
 
       {examMode.active ? (
         <>
-          <Card className="relative overflow-hidden border-primary/20 bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 text-white shadow-glow">
-            <div className="absolute -right-10 -top-16 size-56 rounded-full bg-white/10 blur-2xl" />
-            <div className="absolute -bottom-20 left-1/3 size-48 rounded-full bg-white/10 blur-2xl" />
-            <CardContent className="relative grid gap-5 p-5 sm:grid-cols-[1fr_auto] sm:items-center sm:p-6">
+          <section className="border-2 border-foreground bg-[hsl(var(--highlighter-hsl)/0.42)] px-4 py-5 shadow-[4px_4px_0_hsl(var(--foreground)/0.2)] sm:px-6">
+            <div className="grid gap-5 sm:grid-cols-[1fr_auto] sm:items-center">
               <div>
-                <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-white/80">
-                  <AlarmClock className="size-3.5" /> {t('exam.nextExam')}
+                <p className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+                  <AlarmClock className="size-4" /> {t('exam.nextExam')}
                 </p>
-                <h2 className="mt-1 font-display text-2xl font-extrabold sm:text-3xl">
+                <h2 className="mt-1 font-display text-3xl leading-tight">
                   {nextSubject?.name ?? t('common.subject')}
                 </h2>
                 {nextExam && (
-                  <p className="mt-1 text-sm text-white/85">
+                  <p className="mt-1 text-base text-muted-foreground">
                     {format(parseISO(nextExam.date), 'EEEE, d MMMM yyyy')} · {nextExam.time}
                   </p>
                 )}
                 <div className="mt-4 max-w-md">
-                  <div className="flex items-center justify-between text-[11px] font-medium text-white/85">
-                    <span>Syllabus coverage</span>
-                    <span>
-                      {nextSyllabus.covered}/{nextSyllabus.total} topics
+                  <div className="flex items-end justify-between gap-3">
+                    <span className="text-sm font-semibold">Syllabus coverage</span>
+                    <span className="font-display text-2xl leading-none">
+                      {percent(nextSyllabus.covered, Math.max(1, nextSyllabus.total))}%
                     </span>
                   </div>
-                  <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-white/20">
-                    <div
-                      className="h-full rounded-full bg-white transition-all duration-700"
-                      style={{ width: `${percent(nextSyllabus.covered, Math.max(1, nextSyllabus.total))}%` }}
-                    />
-                  </div>
+                  <Progress
+                    value={percent(nextSyllabus.covered, Math.max(1, nextSyllabus.total))}
+                    className="mt-1.5 h-4"
+                  />
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {nextSyllabus.covered} of {nextSyllabus.total} topics covered
+                  </p>
                 </div>
               </div>
-              <div className="flex items-center gap-4 rounded-2xl bg-white/15 p-4 backdrop-blur-sm sm:flex-col sm:gap-1">
-                <p className="font-display text-5xl font-extrabold leading-none">{daysLeft}</p>
-                <p className="text-xs font-semibold uppercase tracking-widest text-white/85">
+              <div className="flex items-baseline gap-2 border-2 border-foreground bg-[var(--paper)] px-5 py-3 sm:flex-col sm:items-center sm:gap-0">
+                <p className="font-display text-6xl leading-none">{daysLeft}</p>
+                <p className="text-sm font-semibold text-muted-foreground">
                   {daysLeft === 0 ? t('exam.examDay') : t('exam.countdown')}
                 </p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </section>
 
-          <div className="grid gap-4 lg:grid-cols-[1fr_340px]">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-bold">{t('exam.scheduleTitle')}</h2>
-                <Badge variant="secondary">{sortedExams.length} exams</Badge>
+          <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+            <section>
+              <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+                <h2 className="font-display text-2xl">{t('exam.scheduleTitle')}</h2>
+                <span className="text-sm text-muted-foreground">{sortedExams.length} exams</span>
               </div>
-              {sortedExams.map((exam, index) => {
-                const subject = subjectById.get(exam.subjectId)
-                const left = examDaysLeft(exam.date)
-                return (
-                  <Card key={exam.id} className="overflow-hidden border-l-4" style={{ borderLeftColor: subject?.color ?? '#6366f1' }}>
-                    <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+              <div className="border-t-2 border-dashed border-border">
+                {sortedExams.map((exam, index) => {
+                  const subject = subjectById.get(exam.subjectId)
+                  const left = examDaysLeft(exam.date)
+                  return (
+                    <div
+                      key={exam.id}
+                      className="flex flex-col gap-2 border-b-2 border-dashed border-border py-3 sm:flex-row sm:items-center"
+                    >
                       <div className="flex min-w-0 flex-1 items-center gap-3">
-                        <div className="flex size-12 shrink-0 flex-col items-center justify-center rounded-xl bg-muted/60">
-                          <span className="text-[9px] font-bold uppercase text-muted-foreground">
+                        <div className="flex w-14 shrink-0 flex-col items-center border-2 border-foreground px-1 py-1 leading-tight">
+                          <span className="text-xs font-semibold text-muted-foreground">
                             {format(parseISO(exam.date), 'MMM')}
                           </span>
-                          <span className="font-display text-lg font-extrabold leading-none">
-                            {format(parseISO(exam.date), 'd')}
-                          </span>
+                          <span className="font-display text-2xl">{format(parseISO(exam.date), 'd')}</span>
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-2">
-                            <p className="truncate text-sm font-bold">{subject?.name ?? t('common.subject')}</p>
+                            <p className="truncate text-base font-bold">{subject?.name ?? t('common.subject')}</p>
                             <Badge variant={left <= 3 ? 'destructive' : left <= 7 ? 'warning' : 'outline'}>
                               {left < 0 ? 'Passed' : left === 0 ? t('exam.examDay') : `${left} ${t('exam.countdown')}`}
                             </Badge>
-                            {index === 0 && <Badge variant="violet">Next paper</Badge>}
+                            {index === 0 && <Badge variant="accent">Next paper</Badge>}
                           </div>
-                          <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] text-muted-foreground">
+                          <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
                             <span className="inline-flex items-center gap-1">
-                              <Clock className="size-3" /> {exam.time}
+                              <Clock className="size-3.5" /> {exam.time}
                             </span>
                             <span>·</span>
                             <span>{exam.syllabusTopics.length} syllabus topics</span>
@@ -366,12 +367,15 @@ export function ExamPage() {
                           {exam.syllabusTopics.length > 0 && (
                             <div className="mt-1.5 flex flex-wrap gap-1">
                               {exam.syllabusTopics.slice(0, 4).map((name) => (
-                                <span key={name} className="rounded-md bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                                <span
+                                  key={name}
+                                  className="border-b-2 border-[var(--rule)] px-1 text-sm text-muted-foreground"
+                                >
                                   {name}
                                 </span>
                               ))}
                               {exam.syllabusTopics.length > 4 && (
-                                <span className="rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                                <span className="text-sm font-semibold text-muted-foreground">
                                   +{exam.syllabusTopics.length - 4}
                                 </span>
                               )}
@@ -384,97 +388,87 @@ export function ExamPage() {
                           <BookOpen className="size-3.5" /> {t('common.open')}
                         </Link>
                       </Button>
-                    </CardContent>
-                  </Card>
-                )
-              })}
-              {sortedExams.length === 0 && (
-                <p className="rounded-xl bg-muted/40 px-3 py-6 text-center text-xs text-muted-foreground">
-                  {t('exam.noSyllabus')}
-                </p>
-              )}
-            </div>
+                    </div>
+                  )
+                })}
+                {sortedExams.length === 0 && (
+                  <p className="border-b-2 border-dashed border-border py-6 text-center text-sm text-muted-foreground">
+                    {t('exam.noSyllabus')}
+                  </p>
+                )}
+              </div>
+            </section>
 
-            <div className="space-y-4">
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <GraduationCap className="size-4 text-primary" /> {t('exam.rulesTitle')}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2.5">
-                    {[t('exam.rule1'), t('exam.rule2'), t('exam.rule3'), t('exam.rule4'), t('exam.rule5')].map(
-                      (rule, index) => (
-                        <li key={index} className="flex gap-2 text-[11px] leading-relaxed text-muted-foreground">
-                          <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 text-success" /> {rule}
-                        </li>
-                      ),
-                    )}
+            <aside className="space-y-5">
+              <Card className="tape">
+                <CardContent className="p-5">
+                  <h2 className="flex items-center gap-2 font-display text-xl">
+                    <PencilDoodle className="size-5" /> {t('exam.rulesTitle')}
+                  </h2>
+                  <ul className="mt-3 space-y-2">
+                    {rules.map((rule, index) => (
+                      <li key={index} className="flex gap-2 text-sm leading-7 text-muted-foreground">
+                        <TickDoodle className="mt-0.5 size-4 shrink-0" /> {rule}
+                      </li>
+                    ))}
                   </ul>
-                  <p className="mt-3 rounded-xl bg-primary-soft px-3 py-2 text-[11px] font-medium text-primary">
+                  <p className="mt-3 border-l-2 border-[var(--margin-line)] pl-2 text-sm leading-7 text-muted-foreground">
                     {t('exam.autoEnd')}
                   </p>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Syllabus focus</CardTitle>
-                  <CardDescription>Topics the planner is prioritising for {nextSubject?.name ?? 'your exam'}.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {nextSyllabus.total === 0 ? (
-                    <p className="text-xs text-muted-foreground">{t('exam.noSyllabus')}</p>
-                  ) : (
-                    <>
-                      <Progress
-                        value={percent(nextSyllabus.covered, nextSyllabus.total)}
-                        className="h-2"
-                        indicatorClassName="bg-violet-500"
-                      />
-                      <p className="mt-2 text-[11px] text-muted-foreground">
-                        {nextSyllabus.covered} of {nextSyllabus.total} syllabus topics covered.
-                      </p>
-                    </>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+              <section>
+                <h2 className="font-display text-xl">Syllabus focus</h2>
+                <p className="mt-1 text-sm leading-7 text-muted-foreground">
+                  Topics the planner is keeping in view for {nextSubject?.name ?? 'your exam'}.
+                </p>
+                {nextSyllabus.total === 0 ? (
+                  <p className="mt-3 text-sm text-muted-foreground">{t('exam.noSyllabus')}</p>
+                ) : (
+                  <div className="mt-3">
+                    <Progress value={percent(nextSyllabus.covered, nextSyllabus.total)} className="h-4" />
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      {nextSyllabus.covered} of {nextSyllabus.total} syllabus topics covered.
+                    </p>
+                  </div>
+                )}
+              </section>
+            </aside>
           </div>
         </>
       ) : (
         <>
-          <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-primary-soft/70 via-card to-card">
-            <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-start gap-3">
-                <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-primary">
-                  <GraduationCap className="size-6" />
-                </span>
-                <div>
-                  <h2 className="font-display text-lg font-extrabold">{t('exam.inactiveTitle')}</h2>
-                  <p className="mt-1 max-w-xl text-sm text-muted-foreground">{t('exam.inactiveDesc')}</p>
-                </div>
+          <section className="flex flex-col gap-4 border-l-4 border-[var(--margin-line)] bg-[hsl(var(--highlighter-hsl)/0.3)] px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <CalendarDoodle className="mt-1 size-8 shrink-0" />
+              <div>
+                <h2 className="font-display text-2xl text-balance">{t('exam.inactiveTitle')}</h2>
+                <p className="mt-1 max-w-[60ch] text-base leading-8 text-muted-foreground">
+                  {t('exam.inactiveDesc')}
+                </p>
               </div>
-              <div className="flex shrink-0 flex-wrap gap-2">
-                <Button variant="outline" size="sm" onClick={loadSample} disabled={!subjects.length}>
-                  <Sparkles className="size-3.5" /> {t('exam.loadSample')}
-                </Button>
-                <Button size="sm" onClick={() => fileRef.current?.click()} disabled={!subjects.length}>
-                  <UploadCloud className="size-3.5" /> {t('exam.uploadSchedule')}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+            <div className="flex shrink-0 flex-wrap gap-2">
+              <Button variant="outline" size="sm" onClick={loadSample} disabled={!subjects.length}>
+                <Sparkles className="size-3.5" /> {t('exam.loadSample')}
+              </Button>
+              <Button size="sm" onClick={() => fileRef.current?.click()} disabled={!subjects.length}>
+                <UploadCloud className="size-3.5" /> {t('exam.uploadSchedule')}
+              </Button>
+            </div>
+          </section>
 
-          <div className="grid gap-4 lg:grid-cols-[1fr_340px]">
-            <div className="space-y-4">
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">{t('exam.uploadSchedule')}</CardTitle>
-                  <CardDescription>Drop a PDF timetable, or paste the text and let AI parse it.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
+          <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+            <div className="space-y-6">
+              <Card className="tape">
+                <CardContent className="space-y-4 p-5">
+                  <div>
+                    <h2 className="font-display text-2xl">{t('exam.uploadSchedule')}</h2>
+                    <p className="mt-1 text-base leading-8 text-muted-foreground">
+                      Add a PDF timetable, or paste the text and let it be read row by row.
+                    </p>
+                  </div>
                   <input
                     ref={fileRef}
                     type="file"
@@ -489,22 +483,22 @@ export function ExamPage() {
                   <button
                     type="button"
                     onClick={() => fileRef.current?.click()}
-                    className="flex w-full flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-border px-4 py-6 text-center transition-colors hover:border-primary/40 hover:bg-muted/30"
+                    className="flex w-full flex-col items-center justify-center gap-1.5 border-2 border-dashed border-foreground/40 px-4 py-6 text-center transition-colors hover:border-foreground hover:bg-[hsl(var(--highlighter-hsl)/0.25)]"
                   >
                     {parsing ? (
-                      <Loader2 className="size-6 animate-spin text-primary" />
+                      <Loader2 className="size-6 animate-spin" />
                     ) : (
-                      <UploadCloud className="size-6 text-primary" />
+                      <UploadCloud className="size-7" />
                     )}
-                    <span className="text-sm font-semibold">
+                    <span className="text-base font-semibold">
                       {parsing ? t('exam.parsing') : 'Click to upload a schedule'}
                     </span>
-                    <span className="text-[11px] text-muted-foreground">
+                    <span className="text-sm text-muted-foreground">
                       {uploadName || 'PDF, image or plain text · readable text only'}
                     </span>
                   </button>
                   <div>
-                    <Label htmlFor="schedule-text" className="mb-1.5 block">
+                    <Label htmlFor="schedule-text" className="mb-1 block">
                       Or paste schedule text
                     </Label>
                     <Textarea
@@ -516,8 +510,8 @@ export function ExamPage() {
                     />
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <Button variant="soft" size="sm" onClick={parseSchedule} disabled={parsing}>
-                      {parsing ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />}
+                    <Button variant="outline" size="sm" onClick={parseSchedule} disabled={parsing}>
+                      {parsing ? <Loader2 className="size-3.5 animate-spin" /> : <PencilDoodle className="size-4" />}
                       {parsing ? t('exam.parsing') : t('exam.parse')}
                     </Button>
                     <Button variant="ghost" size="sm" onClick={loadSample} disabled={!subjects.length}>
@@ -528,109 +522,106 @@ export function ExamPage() {
               </Card>
 
               <Card>
-                <CardHeader className="pb-3">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
+                <CardContent className="space-y-4 p-5">
+                  <div className="flex flex-wrap items-end justify-between gap-2">
                     <div>
-                      <CardTitle className="text-base">{t('exam.preview')}</CardTitle>
-                      <CardDescription>{t('exam.previewDesc')}</CardDescription>
+                      <h2 className="font-display text-2xl">{t('exam.preview')}</h2>
+                      <p className="mt-1 text-base text-muted-foreground">{t('exam.previewDesc')}</p>
                     </div>
-                    <Badge variant="secondary">{rows.length} rows</Badge>
+                    <span className="text-sm text-muted-foreground">{rows.length} rows</span>
                   </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {rows.map((row, index) => {
-                    const subject = subjectById.get(row.subjectId)
-                    return (
-                      <div key={row.key} className="rounded-xl border border-border bg-background/40 p-3">
-                        <div className="mb-2 flex items-center justify-between gap-2">
-                          <p className="flex items-center gap-2 text-xs font-bold">
-                            <span
-                              className="flex size-5 items-center justify-center rounded-md text-[10px] font-bold text-white"
-                              style={{ backgroundColor: subject?.color ?? '#6366f1' }}
-                            >
-                              {index + 1}
-                            </span>
-                            {subject?.name ?? 'Exam'}
-                          </p>
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            onClick={() => removeRow(row.key)}
-                            aria-label={t('exam.removeRow')}
-                          >
-                            <Trash2 className="size-3.5 text-destructive" />
-                          </Button>
-                        </div>
-                        <div className="grid gap-2 sm:grid-cols-3">
-                          <div>
-                            <Label className="mb-1 block text-[11px]">{t('exam.subject')}</Label>
-                            <Select value={row.subjectId} onValueChange={(value) => updateRow(row.key, { subjectId: value })}>
-                              <SelectTrigger className="h-10">
-                                <SelectValue placeholder={t('exam.subject')} />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {subjects.map((item) => (
-                                  <SelectItem key={item.id} value={item.id}>
-                                    {item.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div>
-                            <Label className="mb-1 block text-[11px]">{t('exam.date')}</Label>
-                            <Input
-                              type="date"
-                              value={row.date}
-                              onChange={(event) => updateRow(row.key, { date: event.target.value })}
-                              className="h-10"
-                            />
-                          </div>
-                          <div>
-                            <Label className="mb-1 block text-[11px]">{t('exam.time')}</Label>
-                            <Input
-                              type="time"
-                              value={row.time}
-                              onChange={(event) => updateRow(row.key, { time: event.target.value })}
-                              className="h-10"
-                            />
-                          </div>
-                        </div>
-                        <div className="mt-2">
-                          <Label className="mb-1 block text-[11px]">{t('exam.syllabus')}</Label>
-                          <div className="flex gap-1.5">
-                            <Input
-                              value={row.syllabusText}
-                              onChange={(event) => updateRow(row.key, { syllabusText: event.target.value })}
-                              placeholder="Laws of Motion, Work Energy, Thermodynamics"
-                              className="h-10"
-                            />
+                  <div className="space-y-4">
+                    {rows.map((row, index) => {
+                      const subject = subjectById.get(row.subjectId)
+                      return (
+                        <div key={row.key} className="border-b-2 border-dashed border-border pb-4 last:pb-0">
+                          <div className="mb-2 flex items-center justify-between gap-2">
+                            <p className="flex items-center gap-2 text-base font-bold">
+                              <span className="flex size-6 items-center justify-center border-2 border-foreground text-sm">
+                                {index + 1}
+                              </span>
+                              {subject?.name ?? 'Exam'}
+                            </p>
                             <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => void suggestSyllabus(row)}
-                              disabled={syllabusRow === row.key}
-                              aria-label="Organise syllabus with AI"
-                              title="Organise syllabus with AI"
+                              variant="ghost"
+                              size="icon-sm"
+                              onClick={() => removeRow(row.key)}
+                              aria-label={t('exam.removeRow')}
                             >
-                              {syllabusRow === row.key ? (
-                                <Loader2 className="size-4 animate-spin" />
-                              ) : (
-                                <Sparkles className="size-4" />
-                              )}
+                              <Trash2 className="size-3.5 text-destructive" />
                             </Button>
                           </div>
+                          <div className="grid gap-3 sm:grid-cols-3">
+                            <div>
+                              <Label className="mb-1 block text-sm">{t('exam.subject')}</Label>
+                              <Select
+                                value={row.subjectId}
+                                onValueChange={(value) => updateRow(row.key, { subjectId: value })}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder={t('exam.subject')} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {subjects.map((item) => (
+                                    <SelectItem key={item.id} value={item.id}>
+                                      {item.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <Label className="mb-1 block text-sm">{t('exam.date')}</Label>
+                              <Input
+                                type="date"
+                                value={row.date}
+                                onChange={(event) => updateRow(row.key, { date: event.target.value })}
+                              />
+                            </div>
+                            <div>
+                              <Label className="mb-1 block text-sm">{t('exam.time')}</Label>
+                              <Input
+                                type="time"
+                                value={row.time}
+                                onChange={(event) => updateRow(row.key, { time: event.target.value })}
+                              />
+                            </div>
+                          </div>
+                          <div className="mt-3">
+                            <Label className="mb-1 block text-sm">{t('exam.syllabus')}</Label>
+                            <div className="flex gap-1.5">
+                              <Input
+                                value={row.syllabusText}
+                                onChange={(event) => updateRow(row.key, { syllabusText: event.target.value })}
+                                placeholder="Laws of Motion, Work Energy, Thermodynamics"
+                              />
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => void suggestSyllabus(row)}
+                                disabled={syllabusRow === row.key}
+                                aria-label="Organise syllabus"
+                                title="Organise syllabus"
+                              >
+                                {syllabusRow === row.key ? (
+                                  <Loader2 className="size-4 animate-spin" />
+                                ) : (
+                                  <Sparkles className="size-4" />
+                                )}
+                              </Button>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    )
-                  })}
+                      )
+                    })}
+                  </div>
 
                   <Button variant="outline" size="sm" onClick={addRow} className="w-full">
                     <Plus className="size-3.5" /> {t('exam.addRow')}
                   </Button>
 
-                  <div className="flex flex-col gap-2 border-t border-border pt-3 sm:flex-row sm:items-center sm:justify-between">
-                    <p className={cn('text-[11px]', validRows ? 'text-muted-foreground' : 'text-destructive')}>
+                  <div className="flex flex-col gap-2 border-t-2 border-dashed border-border pt-3 sm:flex-row sm:items-center sm:justify-between">
+                    <p className={cn('text-sm leading-7', validRows ? 'text-muted-foreground' : 'text-destructive')}>
                       {validRows ? t('exam.autoEnd') : t('exam.subjectMismatch')}
                     </p>
                     <Button onClick={() => setConfirmEnter(true)} disabled={!validRows}>
@@ -641,76 +632,71 @@ export function ExamPage() {
               </Card>
             </div>
 
-            <div className="space-y-4">
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <GraduationCap className="size-4 text-primary" /> {t('exam.rulesTitle')}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2.5">
-                    {[t('exam.rule1'), t('exam.rule2'), t('exam.rule3'), t('exam.rule4'), t('exam.rule5')].map(
-                      (rule, index) => (
-                        <li key={index} className="flex gap-2 text-[11px] leading-relaxed text-muted-foreground">
-                          <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 text-success" /> {rule}
-                        </li>
-                      ),
-                    )}
-                  </ul>
-                </CardContent>
-              </Card>
+            <aside className="space-y-5">
+              <section>
+                <h2 className="flex items-center gap-2 font-display text-xl">
+                  <PencilDoodle className="size-5" /> {t('exam.rulesTitle')}
+                </h2>
+                <ul className="mt-2">
+                  {rules.map((rule, index) => (
+                    <li
+                      key={index}
+                      className="flex gap-2 border-b-2 border-dashed border-border py-2 text-sm leading-7 text-muted-foreground last:border-0"
+                    >
+                      <TickDoodle className="mt-1 size-4 shrink-0" /> {rule}
+                    </li>
+                  ))}
+                </ul>
+              </section>
 
-              <Card className="border-dashed bg-transparent">
-                <CardContent className="p-4">
-                  <p className="flex items-center gap-1.5 text-xs font-bold">
-                    <Sparkles className="size-3.5 text-violet-500" /> {t('exam.sampleNote')}
-                  </p>
-                  <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-                    {t('exam.inactiveDesc')}
-                  </p>
-                  <Button variant="soft" size="sm" className="mt-3 w-full" onClick={loadSample} disabled={!subjects.length}>
-                    <ArrowRight className="size-3.5" /> {t('exam.loadSample')}
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
+              <section className="border-l-4 border-[var(--margin-line)] pl-3">
+                <p className="flex items-center gap-1.5 font-display text-lg">
+                  <PencilDoodle className="size-4" /> {t('exam.sampleNote')}
+                </p>
+                <p className="mt-1 text-sm leading-7 text-muted-foreground">{t('exam.inactiveDesc')}</p>
+                <Button variant="ghost" size="sm" className="mt-2 px-0" onClick={loadSample} disabled={!subjects.length}>
+                  <ArrowRight className="size-3.5" /> {t('exam.loadSample')}
+                </Button>
+              </section>
+            </aside>
           </div>
         </>
       )}
 
       {archive.length > 0 && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Archive className="size-4 text-muted-foreground" /> {t('exam.archive')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
+        <section>
+          <h2 className="flex items-center gap-2 font-display text-2xl">
+            <Archive className="size-5" /> {t('exam.archive')}
+          </h2>
+          <div className="mt-2 border-t-2 border-dashed border-border">
             {archive.map((entry, index) => (
               <div
                 key={`${entry.exitedAt}-${index}`}
-                className="flex flex-col gap-1 rounded-xl border border-border bg-background/40 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between"
+                className="flex flex-col gap-1 border-b-2 border-dashed border-border py-3 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div>
-                  <p className="text-xs font-semibold">
+                  <p className="text-base font-semibold">
                     {entry.exams.length} exam{entry.exams.length === 1 ? '' : 's'} ·{' '}
                     {entry.exams
                       .map((exam) => subjectById.get(exam.subjectId)?.name)
                       .filter(Boolean)
                       .join(' · ')}
                   </p>
-                  <p className="text-[10px] text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     {t('exam.archivedOn', { date: format(parseISO(entry.exitedAt), 'd MMM yyyy') })}
                   </p>
                 </div>
                 <Badge variant={entry.reason === 'all-passed' ? 'success' : entry.reason === 'auto' ? 'info' : 'outline'}>
-                  {entry.reason === 'all-passed' ? 'All papers done' : entry.reason === 'auto' ? 'Auto-ended' : 'Exited manually'}
+                  {entry.reason === 'all-passed'
+                    ? 'All papers done'
+                    : entry.reason === 'auto'
+                      ? 'Ended on its own'
+                      : 'Exited by hand'}
                 </Badge>
               </div>
             ))}
-          </CardContent>
-        </Card>
+          </div>
+        </section>
       )}
 
       <ConfirmDialog

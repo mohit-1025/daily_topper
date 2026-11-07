@@ -1,8 +1,8 @@
 # Daily Topper
 
-An AI study planner that turns a student's syllabus, confidence and exam dates into a daily plan that actually adapts. Built for the BharatCode Build League hackathon.
+A study planner that turns a student's syllabus, confidence and exam dates into a daily plan that actually adapts. Built for the BharatCode Build League hackathon.
 
-Daily Topper is a complete, demo-ready web app: a pre-loaded guest student (Riya), a real planner, quizzes that gate task completion, revision sheets, exam mode with backwards scheduling, progress analytics and full light/dark + six-language support. It runs with **zero setup** — no keys, no database, no build flags.
+Daily Topper is a complete, demo-ready web app: a pre-loaded guest student (Riya), a real planner, quizzes that gate task completion, revision sheets, exam mode with backwards scheduling, progress analytics, a paper-notebook light theme and six-language support. It runs with **zero setup** — no keys, no database, no build flags.
 
 ---
 
@@ -27,14 +27,14 @@ Node 20+ is recommended. There are no required environment variables.
 
 ## 5-minute demo script
 
-1. **Landing → Try as guest.** Riya's profile opens with a 6-day streak, 9 covered topics, quiz average 72%, and today's AI-planned slots.
+1. **Landing → Try as guest.** Riya's profile opens with a 6-day streak, 9 covered topics, quiz average 72%, and today's planned slots.
 2. **Daily Tasks → Start.** The timer keeps running across pages (and after reload). *Skip* asks for a reason and the planner rebalances. A slot can only be marked done after the 5-question quiz; the result persists on screen.
 3. **Study Plan.** Month / week / day views share the same slot store. Missed slots are auto-detected and requeued. Mobile shows an agenda instead of a grid.
-4. **Subjects → Physics.** Add a subject, change confidence, upload a PDF (text is extracted in the browser with pdf.js), generate AI study content, and toggle topics covered.
-5. **Quizzes.** Build a custom quiz from subjects/topics, take it, read the AI improvement report, retry, or send weak topics into the plan.
+4. **Subjects → Physics.** Add a subject, change confidence, upload a PDF (text is extracted in the browser with pdf.js), generate study notes, and toggle topics covered.
+5. **Quizzes.** Build a custom quiz from subjects/topics, take it, read the improvement report, retry, or send weak topics into the plan.
 6. **Progress.** Study-time area chart, completion pie, quiz trend, confidence bars, 12-week heatmap, and cached revision sheets with copy/print.
 7. **Exam Mode.** One click loads a sample schedule, preview is editable, and the plan is rebuilt backwards from exam dates. Exit archives the plan; exams auto-end when their date passes.
-8. **Settings.** Theme, language (English, Hindi, Tamil, Telugu, Bengali, Marathi), reminders, export JSON, reset demo, reset all data, delete account, sign out.
+8. **Settings.** Language (English, Hindi, Tamil, Telugu, Bengali, Marathi), reminders, export JSON, reset demo, reset all data, delete account, sign out.
 9. **Mobile.** Resize below 768px: sidebar becomes bottom tabs, dialogs become bottom sheets, tables become cards, calendar becomes an agenda. Nothing scrolls horizontally at 360px.
 
 ---
@@ -46,13 +46,13 @@ Node 20+ is recommended. There are no required environment variables.
 | Auth | Email/password local accounts, prominent Guest mode, protected routes redirect to `/auth` |
 | Onboarding | 4 steps: identity, academics, preferences, subjects — then the first plan is generated |
 | Dashboard | Greeting, streak, goal progress, today's tasks, weak topics, exam countdown, quick actions |
-| Subjects | Add/delete subjects, confidence rating, detail page with files, AI content and topics |
+| Subjects | Add/delete subjects, confidence rating, detail page with files, study notes and topics |
 | Daily Tasks | Persistent timer, content drawer, skip reasons, done gated by a 5-MCQ quiz |
 | Study Plan | Month/week/day, mobile agenda, legend, shared slots, missed/skip recovery |
 | Progress | Recharts analytics, heatmap, covered topics, revision sheets with copy/print |
-| Quizzes | Setup, attempt, result, AI report, retry, history, add weak topics to plan |
+| Quizzes | Setup, attempt, result, improvement report, retry, history, add weak topics to plan |
 | Exam Mode | Parse or enter a schedule, editable preview, backwards planning, archive, auto-end |
-| Settings | Profile, study preferences, language, theme, reminders, export, reset, delete, logout |
+| Settings | Profile, study preferences, language, reminders, export, reset, delete, logout |
 
 ### Stack
 
@@ -87,7 +87,6 @@ Persistence is debounced. Local keys:
 | `dt-guest-session-v1` / `dt-data-guest` | Guest session and Riya's seeded data |
 | `dt-accounts-v1` / `dt-session-v1` | Local accounts (salted SHA-256) and session |
 | `dt-data-<userId>` | Per-account app data |
-| `dt-theme` | Light / dark / system preference |
 | `dt-ai-cache-v1` | Validated AI responses, capped at 160 entries |
 
 Local accounts are a demo convenience, not production auth. Use the Supabase adapter for real accounts.
@@ -170,8 +169,8 @@ Missed slots are detected on load and requeued with their topics. Streaks count 
 
 ## Design and accessibility
 
-- Indigo/violet primary, amber streak, semantic status colours, rounded-2xl cards and soft shadows.
-- Light, dark and system themes with a persisted toggle; CSS variables throughout.
+- Paper notebook palette: paper `#fbfaf4`, ruled blue `#b9d3e6`, margin red `#e8928f`, ink `#23325e`, highlighter `#ffe45c`, tape `#f3d9a4`.
+- Light theme only, driven by CSS variables; ruled background, handwritten type, hard offset shadows and taped cards.
 - Mobile-first: bottom tabs under 768px, sidebar above, bottom-sheet dialogs on small screens, tables become cards, calendar becomes agenda.
 - 44px touch targets, focus-visible rings, labelled controls, `aria-label`s on navigation, keyboard-operable Radix primitives, reduced horizontal overflow at 360px.
 - Loading skeletons, empty states, toasts and confirmation dialogs for destructive actions.
@@ -183,14 +182,14 @@ Missed slots are detected on load and requeued with their topics. Streaks count 
 - [x] Guest login with pre-loaded Riya profile
 - [x] 4-step onboarding creates a plan
 - [x] Add, delete and re-rate subjects
-- [x] Upload and view files; generate AI content
+- [x] Upload and view files; generate study notes
 - [x] Start, skip (with reason) and finish tasks — finishing requires a quiz
 - [x] Plan edits stay in sync with the calendar and today's tasks
 - [x] Missed slots are detected and requeued
 - [x] Revision sheet generation, copy and print
-- [x] Custom quizzes with AI report, retry and weak-topic injection
+- [x] Custom quizzes with improvement report, retry and weak-topic injection
 - [x] Exam Mode enter, edit, exit/archive and auto-end
-- [x] Theme toggle and language switch persist
+- [x] Language switch persists
 - [x] Responsive layouts at 360, 768 and 1280+
 - [x] `npm run build` passes with no TypeScript errors
 

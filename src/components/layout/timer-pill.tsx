@@ -21,7 +21,7 @@ export function GlobalTimerPill() {
 
   return (
     <div className="fixed bottom-24 right-4 z-40 md:bottom-6">
-      <div className="flex items-center gap-2 rounded-2xl border border-border bg-card/95 p-1.5 pl-2.5 shadow-lift backdrop-blur-xl">
+      <div className="flex items-center gap-2 rounded-[5px_14px_7px_11px] border-2 border-foreground bg-card p-1.5 pl-2.5 shadow-[3px_3px_0_hsl(var(--foreground)/0.24)]">
         <button
           onClick={() => navigate('/tasks')}
           className="flex items-center gap-2.5"
@@ -35,8 +35,8 @@ export function GlobalTimerPill() {
                 cy="18"
                 r="15.5"
                 fill="none"
-                stroke="hsl(var(--primary))"
-                strokeWidth="3"
+                stroke="hsl(var(--highlighter-hsl))"
+                strokeWidth="4"
                 strokeLinecap="round"
                 strokeDasharray={`${progress * 97.4} 97.4`}
               />

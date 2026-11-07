@@ -3,7 +3,8 @@ import * as ProgressPrimitive from '@radix-ui/react-progress'
 import * as SwitchPrimitive from '@radix-ui/react-switch'
 import * as CheckboxPrimitive from '@radix-ui/react-checkbox'
 import * as AvatarPrimitive from '@radix-ui/react-avatar'
-import { Check, Star, type LucideIcon } from 'lucide-react'
+import { Check } from 'lucide-react'
+import { StarDoodle } from '@/components/shared/doodles'
 import { cn } from '@/lib/utils'
 
 const Progress = React.forwardRef<
@@ -12,11 +13,11 @@ const Progress = React.forwardRef<
 >(({ className, value, indicatorClassName, ...props }, ref) => (
   <ProgressPrimitive.Root
     ref={ref}
-    className={cn('relative h-2 w-full overflow-hidden rounded-full bg-muted', className)}
+    className={cn('relative h-3 w-full overflow-hidden rounded-[2px_7px_3px_6px] border-2 border-foreground bg-card', className)}
     {...props}
   >
     <ProgressPrimitive.Indicator
-      className={cn('h-full w-full flex-1 rounded-full bg-primary transition-all duration-700', indicatorClassName)}
+      className={cn('h-full w-full flex-1 progress-striped transition-all duration-700', indicatorClassName)}
       style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
     />
   </ProgressPrimitive.Root>
@@ -30,12 +31,12 @@ const Switch = React.forwardRef<
   <SwitchPrimitive.Root
     ref={ref}
     className={cn(
-      'peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=unchecked]:bg-input',
+      'peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-[4px_9px_5px_8px] border-2 border-foreground bg-card transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-accent',
       className,
     )}
     {...props}
   >
-    <SwitchPrimitive.Thumb className="pointer-events-none block size-5 rounded-full bg-white shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0" />
+    <SwitchPrimitive.Thumb className="pointer-events-none block size-4 rounded-[2px] border border-foreground bg-foreground shadow-none transition-transform data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0.5 data-[state=checked]:bg-primary-foreground" />
   </SwitchPrimitive.Root>
 ))
 Switch.displayName = SwitchPrimitive.Root.displayName
@@ -47,7 +48,7 @@ const Checkbox = React.forwardRef<
   <CheckboxPrimitive.Root
     ref={ref}
     className={cn(
-      'peer size-5 shrink-0 rounded-md border-2 border-input bg-card ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground',
+      'peer size-5 shrink-0 rounded-[3px_6px_4px_5px] border-2 border-input bg-card ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground',
       className,
     )}
     {...props}
@@ -100,7 +101,7 @@ function Separator({ className, ...props }: React.HTMLAttributes<HTMLDivElement>
 }
 
 interface EmptyStateProps {
-  icon: LucideIcon
+  icon: React.ElementType
   title: string
   description: string
   action?: React.ReactNode
@@ -109,12 +110,12 @@ interface EmptyStateProps {
 
 function EmptyState({ icon: Icon, title, description, action, className }: EmptyStateProps) {
   return (
-    <div className={cn('flex flex-col items-center justify-center px-6 py-14 text-center', className)}>
-      <div className="mb-4 flex size-16 items-center justify-center rounded-2xl bg-primary-soft text-primary">
-        <Icon className="size-7" />
+    <div className={cn('flex flex-col items-center justify-center px-6 py-12 text-center', className)}>
+      <div className="mb-4 flex size-16 rotate-[-1.5deg] items-center justify-center rounded-[8px_18px_10px_15px] border-2 border-foreground bg-transparent text-foreground">
+        <Icon className="size-7" strokeWidth={1.8} />
       </div>
-      <h3 className="font-display text-lg font-semibold">{title}</h3>
-      <p className="mt-1 max-w-sm text-sm text-muted-foreground">{description}</p>
+      <h3 className="font-display text-xl font-semibold">{title}</h3>
+      <p className="mt-1 max-w-sm text-base leading-8 text-muted-foreground">{description}</p>
       {action && <div className="mt-5">{action}</div>}
     </div>
   )
@@ -146,18 +147,27 @@ function RatingStars({
               aria-checked={star === value}
               aria-label={`${star} — ${labels[star - 1]}`}
               onClick={() => onChange(star)}
-              className="flex size-8 items-center justify-center rounded-lg transition-transform hover:scale-110 focus-visible:ring-2 focus-visible:ring-ring"
+              className="flex size-8 items-center justify-center rounded-lg transition-transform hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <Star
-                className={cn(dimensions, active ? 'fill-accent text-accent' : 'text-muted-foreground/40')}
+              <StarDoodle
+                className={cn(
+                  dimensions,
+                  active ? 'fill-[hsl(var(--highlighter-hsl))] text-foreground' : 'text-muted-foreground/40',
+                )}
               />
             </button>
           ) : (
-            <Star key={star} className={cn(dimensions, active ? 'fill-accent text-accent' : 'text-muted-foreground/30')} />
+            <StarDoodle
+              key={star}
+              className={cn(
+                dimensions,
+                active ? 'fill-[hsl(var(--highlighter-hsl))] text-foreground' : 'text-muted-foreground/30',
+              )}
+            />
           )
         })}
       </div>
-      {showLabel && value > 0 && <span className="text-xs font-medium text-muted-foreground">{labels[value - 1]}</span>}
+      {showLabel && value > 0 && <span className="text-sm font-medium text-muted-foreground">{labels[value - 1]}</span>}
     </div>
   )
 }

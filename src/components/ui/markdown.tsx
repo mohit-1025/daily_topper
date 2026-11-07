@@ -6,7 +6,7 @@ function inline(text: string): ReactNode[] {
   return parts.map((part, index) => {
     if (part.startsWith('**') && part.endsWith('**')) {
       return (
-        <strong key={index} className="font-semibold text-foreground">
+        <strong key={index} className="font-semibold text-foreground underline-highlighter">
           {part.slice(2, -2)}
         </strong>
       )
@@ -29,11 +29,11 @@ export function Markdown({ content, className }: { content: string; className?: 
     ))
     blocks.push(
       list.type === 'ul' ? (
-        <ul key={`list-${blocks.length}`} className="my-2.5 ml-5 list-disc space-y-1.5 text-sm text-muted-foreground">
+        <ul key={`list-${blocks.length}`} className="my-2.5 ml-5 list-disc space-y-1.5 text-base leading-8 text-muted-foreground">
           {items}
         </ul>
       ) : (
-        <ol key={`list-${blocks.length}`} className="my-2.5 ml-5 list-decimal space-y-1.5 text-sm text-muted-foreground">
+        <ol key={`list-${blocks.length}`} className="my-2.5 ml-5 list-decimal space-y-1.5 text-base leading-8 text-muted-foreground">
           {items}
         </ol>
       ),
@@ -85,7 +85,7 @@ export function Markdown({ content, className }: { content: string; className?: 
     }
     flushList()
     blocks.push(
-      <p key={index} className="my-1.5 text-sm leading-relaxed text-muted-foreground">
+      <p key={index} className="my-1.5 text-base leading-8 text-muted-foreground">
         {inline(line)}
       </p>,
     )

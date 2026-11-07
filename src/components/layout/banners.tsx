@@ -20,17 +20,17 @@ export function DemoBanner() {
   if (!session?.guest || hidden) return null
 
   return (
-    <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-accent/30 bg-gradient-to-r from-amber-400/10 via-amber-300/5 to-transparent p-3.5 sm:flex-row sm:items-center">
+    <div className="mb-4 flex flex-col gap-3 rounded-[4px_12px_6px_10px] border-2 border-dashed border-foreground/60 bg-secondary/60 p-3.5 sm:flex-row sm:items-center">
       <div className="flex min-w-0 flex-1 items-center gap-3">
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-accent/15 text-amber-700 dark:text-accent">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-[4px_9px_5px_8px] border-2 border-foreground text-foreground">
           <FlaskConical className="size-4" />
         </span>
-        <p className="text-xs font-medium leading-relaxed text-foreground/80">
+        <p className="text-sm font-medium leading-relaxed text-foreground/80">
           <span className="font-bold text-foreground">{t('common.demo')} · </span>
           {t('guest.banner')}
         </p>
       </div>
-      <div className="flex shrink-0 items-center gap-2 pl-12 sm:pl-0">
+      <div className="flex flex-wrap items-center gap-2 sm:shrink-0 sm:pl-0">
         <Button variant="outline" size="sm" onClick={() => setConfirmOpen(true)} disabled={resetting}>
           <RotateCcw className="size-3.5" />
           {t('guest.reset')}
@@ -86,17 +86,17 @@ export function ExamModeBanner() {
   return (
     <button
       onClick={() => navigate('/exam')}
-      className="group mb-4 flex w-full flex-col gap-2 rounded-2xl border border-violet-500/25 bg-gradient-to-r from-violet-500/15 via-indigo-500/10 to-fuchsia-500/10 p-3.5 text-left transition-shadow hover:shadow-lift sm:flex-row sm:items-center sm:justify-between"
+      className="group mb-4 flex w-full flex-col gap-2 rounded-[5px_14px_7px_11px] border-2 border-foreground bg-accent/65 p-3.5 text-left shadow-[3px_3px_0_hsl(var(--foreground)/0.22)] transition-transform hover:-translate-y-0.5 sm:flex-row sm:items-center sm:justify-between"
     >
       <div className="flex items-center gap-3">
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-violet-500/15 text-violet-500">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-[4px_9px_5px_8px] border-2 border-foreground text-foreground">
           <CalendarClock className="size-4" />
         </span>
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-violet-500">
+          <p className="text-sm font-semibold text-foreground">
             {t('exam.activeTitle')}
           </p>
-          <p className="text-sm font-semibold">
+          <p className="text-base font-semibold">
             {days <= 0 ? t('exam.examDay') : `${days} ${t('exam.countdown')}`} · {subject?.name}{' '}
             <span className="font-normal text-muted-foreground">
               ({prettyDate(next.date)}, {next.time})
@@ -104,7 +104,7 @@ export function ExamModeBanner() {
           </p>
         </div>
       </div>
-      <span className="flex items-center gap-1 pl-12 text-xs font-semibold text-violet-500 sm:pl-0">
+      <span className="flex items-center gap-1 pl-12 text-sm font-semibold text-foreground sm:pl-0">
         {t('exam.title')}
         <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
       </span>

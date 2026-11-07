@@ -1,29 +1,36 @@
-import { GraduationCap } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
+import { BookDoodle } from '@/components/shared/doodles'
 import { cn } from '@/lib/utils'
 
 export function Logo({
   to = '/',
   compact = false,
   className,
+  textClassName,
 }: {
   to?: string
   compact?: boolean
   className?: string
+  textClassName?: string
 }) {
+  const location = useLocation()
+
   return (
     <Link
       to={to}
-      className={cn('group inline-flex items-center gap-2.5 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring', className)}
+      onClick={() => {
+        if (location.pathname === to) window.scrollTo({ top: 0 })
+      }}
+      className={cn('group inline-flex items-center gap-2.5 rounded-md focus-visible:outline-none', className)}
       aria-label="Daily Topper home"
     >
-      <span className="relative flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 text-white shadow-glow transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-105">
-        <GraduationCap className="size-5" strokeWidth={2.2} />
-        <span className="absolute -right-1 -top-1 size-3 rounded-full border-2 border-background bg-accent" />
+      <span className="relative flex size-10 shrink-0 -rotate-2 items-center justify-center rounded-[4px_11px_5px_9px] border-2 border-foreground bg-card text-foreground shadow-[2px_2px_0_hsl(var(--foreground)/0.3)]">
+        <BookDoodle className="size-5" strokeWidth={2} />
+        <span className="absolute -right-1.5 -top-1.5 h-3 w-6 rotate-6 bg-[var(--tape)]" aria-hidden />
       </span>
       {!compact && (
-        <span className="font-display text-lg font-extrabold tracking-tight">
-          Daily <span className="gradient-text">Topper</span>
+        <span className={cn('whitespace-nowrap font-display text-xl tracking-wide', textClassName)}>
+          Daily <span className="mark">Topper</span>
         </span>
       )}
     </Link>
@@ -34,11 +41,11 @@ export function LogoMark({ className }: { className?: string }) {
   return (
     <span
       className={cn(
-        'flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 text-white shadow-glow',
+        'flex size-10 -rotate-2 items-center justify-center rounded-[4px_11px_5px_9px] border-2 border-foreground bg-card text-foreground shadow-[2px_2px_0_hsl(var(--foreground)/0.3)]',
         className,
       )}
     >
-      <GraduationCap className="size-5" strokeWidth={2.2} />
+      <BookDoodle className="size-5" strokeWidth={2} />
     </span>
   )
 }

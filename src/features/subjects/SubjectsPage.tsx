@@ -1,13 +1,12 @@
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { motion } from 'framer-motion'
-import { ArrowRight, BookOpen, FileStack, Layers, Plus, Search, Sparkles, Star } from 'lucide-react'
+import { ArrowRight, BookOpen, Plus, Search } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
+import { BookDoodle, NoteDoodle, StarDoodle } from '@/components/shared/doodles'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card } from '@/components/ui/card'
 import { Input, Label } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
 import { Progress, RatingStars, EmptyState } from '@/components/ui/misc'
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useAppStore } from '@/store/useAppStore'
@@ -101,73 +100,56 @@ export function SubjectsPage() {
           />
         </Card>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {visible.map((subject, index) => {
+        <div className="border-t-2 border-dashed border-border">
+          {visible.map((subject) => {
             const subjectTopics = topics.filter((topic) => topic.subjectId === subject.id)
             const covered = subjectTopics.filter((topic) => topic.status === 'covered').length
             const uploadCount = uploads.filter((upload) => upload.subjectId === subject.id).length
             const generatedCount = generated.filter((item) => item.subjectId === subject.id).length
             const coveredPercent = percent(covered, Math.max(1, subjectTopics.length))
             return (
-              <motion.div
+              <Link
                 key={subject.id}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: Math.min(index * 0.04, 0.3) }}
+                to={`/subjects/${subject.id}`}
+                className="group flex flex-col gap-3 border-b-2 border-dashed border-border py-4 sm:flex-row sm:items-start"
               >
-                <Link to={`/subjects/${subject.id}`} className="group block h-full">
-                  <Card className="relative h-full overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lift">
-                    <span className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: subject.color }} />
-                    <CardContent className="flex h-full flex-col p-5">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-center gap-3">
-                          <span
-                            className="flex size-11 shrink-0 items-center justify-center rounded-xl text-xs font-bold text-white shadow-sm"
-                            style={{ backgroundColor: subject.color }}
-                          >
-                            {subject.name.slice(0, 2).toUpperCase()}
-                          </span>
-                          <div className="min-w-0">
-                            <h2 className="truncate font-display text-base font-bold">{subject.name}</h2>
-                            <p className="text-[11px] text-muted-foreground">
-                              {subjectTopics.length} {t('common.topics').toLowerCase()}
-                            </p>
-                          </div>
-                        </div>
-                        <ArrowRight className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
-                      </div>
+                <span className="flex size-12 shrink-0 items-center justify-center border-2 border-foreground font-display text-lg leading-none">
+                  {subject.name.slice(0, 2).toUpperCase()}
+                </span>
 
-                      <div className="mt-4 flex items-center justify-between">
-                        <span className="text-[11px] font-medium text-muted-foreground">{t('subjects.rating')}</span>
-                        <RatingStars value={subject.selfRating} size="sm" />
-                      </div>
-                      <p className="text-right text-[10px] text-muted-foreground">{ratingLabels[subject.selfRating - 1]}</p>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <h2 className="flex items-center gap-2 font-display text-2xl leading-tight">
+                      {subject.name}
+                      <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                    </h2>
+                    <span className="text-sm tabular-nums text-muted-foreground">
+                      {covered}/{subjectTopics.length} topics · {uploadCount} {uploadCount === 1 ? 'upload' : 'uploads'}
+                      {generatedCount > 0 ? ` · ${generatedCount} ${generatedCount === 1 ? 'note' : 'notes'}` : ''}
+                    </span>
+                  </div>
 
-                      <div className="mt-3 space-y-1.5">
-                        <div className="flex items-center justify-between text-[11px]">
-                          <span className="text-muted-foreground">{t('subjects.topicsCovered', { percent: coveredPercent })}</span>
-                          <span className="font-semibold">{covered}/{subjectTopics.length}</span>
-                        </div>
-                        <Progress value={coveredPercent} className="h-1.5" indicatorClassName="bg-success" />
-                      </div>
+                  <div className="mt-1 flex flex-wrap items-center gap-2">
+                    <RatingStars value={subject.selfRating} size="sm" />
+                    <span className="text-sm text-muted-foreground">
+                      {ratingLabels[subject.selfRating - 1]} · {t('subjects.rating')}
+                    </span>
+                  </div>
 
-                      <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-4">
-                        <Badge variant="secondary">
-                          <Layers className="size-3" /> {uploadCount} uploads
-                        </Badge>
-                        <Badge variant="violet">
-                          <Sparkles className="size-3" /> {generatedCount} AI
-                        </Badge>
-                        {coveredPercent >= 60 && (
-                          <Badge variant="success">
-                            <Star className="size-3" /> On track
-                          </Badge>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              </motion.div>
+                  <div className="mt-2 flex items-center gap-3">
+                    <Progress value={coveredPercent} className="h-3 flex-1" />
+                    <span className="w-12 shrink-0 text-right font-display text-xl leading-none">{coveredPercent}%</span>
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {t('subjects.topicsCovered', { percent: coveredPercent })}
+                    {coveredPercent >= 60 && (
+                      <span className="ml-2 inline-flex items-center gap-1 font-semibold text-foreground">
+                        <StarDoodle className="size-3.5 fill-[hsl(var(--highlighter-hsl))]" /> On track
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </Link>
             )
           })}
         </div>
@@ -179,41 +161,40 @@ export function SubjectsPage() {
             icon={Search}
             title="No subjects match your search"
             description="Try a different name, or add the subject to your plan."
-            action={<Button variant="outline" onClick={() => setQuery('')}>{t('common.close')}</Button>}
+            action={
+              <Button variant="outline" onClick={() => setQuery('')}>
+                {t('common.close')}
+              </Button>
+            }
           />
         </Card>
       )}
 
       {subjects.length > 0 && (
-        <Card>
-          <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-3">
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary">
-                <FileStack className="size-5" />
-              </span>
-              <div>
-                <p className="text-sm font-semibold">One folder for everything</p>
-                <p className="text-xs text-muted-foreground">
-                  Upload notes, recordings or chapter PDFs. AI turns them into summaries, flashcards and practice sets.
-                </p>
-              </div>
+        <section className="flex flex-col gap-3 border-l-4 border-[var(--margin-line)] pl-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <NoteDoodle className="mt-1 size-6 shrink-0" />
+            <div>
+              <p className="font-display text-lg">One folder for everything</p>
+              <p className="max-w-[60ch] text-sm leading-7 text-muted-foreground">
+                Keep chapter PDFs, class notes and recordings together. Generated notes and practice sets sit beside
+                them, so revision starts from one page.
+              </p>
             </div>
-            <Button variant="outline" asChild>
-              <Link to={`/subjects/${subjects[0].id}`}>
-                {t('common.open')} <ArrowRight className="size-4" />
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
+          </div>
+          <Button variant="outline" asChild>
+            <Link to={`/subjects/${subjects[0].id}`}>
+              {t('common.open')} <ArrowRight className="size-4" />
+            </Link>
+          </Button>
+        </section>
       )}
 
       <Dialog open={open} onOpenChange={closeDialog}>
         <DialogContent size="sm" className="sm:max-w-md">
           <form onSubmit={submit}>
             <DialogHeader>
-              <div className="mb-1 flex size-11 items-center justify-center rounded-xl bg-primary-soft text-primary">
-                <BookOpen className="size-5" />
-              </div>
+              <BookDoodle className="size-7" />
               <DialogTitle>{t('subjects.addTitle')}</DialogTitle>
               <DialogDescription>{t('subjects.addDesc')}</DialogDescription>
             </DialogHeader>
@@ -234,16 +215,16 @@ export function SubjectsPage() {
               </div>
               <div className="space-y-1.5">
                 <Label>{t('subjects.ratingLabel')}</Label>
-                <div className="rounded-xl border border-border bg-muted/40 p-3">
+                <div className="border-2 border-dashed border-border p-3">
                   <RatingStars value={rating} onChange={setRating} size="lg" showLabel />
-                  <div className="mt-2 flex justify-between text-[10px] font-medium text-muted-foreground">
+                  <div className="mt-2 flex justify-between text-sm text-muted-foreground">
                     <span>{t('subjects.veryWeak')}</span>
                     <span>{ratingLabels[rating - 1]}</span>
                     <span>{t('subjects.veryStrong')}</span>
                   </div>
                 </div>
               </div>
-              {error && <p className="text-xs font-medium text-destructive">{error}</p>}
+              {error && <p className="text-sm font-medium text-destructive">{error}</p>}
             </DialogBody>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => closeDialog(false)}>

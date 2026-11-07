@@ -1,5 +1,4 @@
 export type Language = 'en' | 'hi' | 'ta' | 'te' | 'bn' | 'mr'
-export type ThemeMode = 'light' | 'dark' | 'system'
 export type EducationLevel = 'school' | 'undergraduate' | 'postgraduate' | 'competitive'
 export type StudyTime = 'morning' | 'afternoon' | 'evening' | 'night'
 export type SlotLength = 25 | 45 | 60 | 90
@@ -25,7 +24,6 @@ export interface Profile {
 
 export interface Settings {
   language: Language
-  theme: ThemeMode
   studyHours: number
   preferredStudyTime: StudyTime
   slotLength: SlotLength
