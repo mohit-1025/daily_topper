@@ -130,7 +130,7 @@ const en = {
     mockupTitle: 'Your week on one page',
     mockupSubtitle: 'Clear slots, crossed-out misses, and room for real life.',
     footerNote: 'Made for students who are doing their best.',
-    deviceNote: 'Stays on your device',
+    deviceNote: 'Private by default',
     nav: {
       inside: 'Inside',
       how: 'How it works',
@@ -153,8 +153,8 @@ const en = {
     },
     trustTitle: 'Your notebook stays yours',
     trustDesc:
-      'Plans, notes and quizzes live in your browser by default. No ads, no selling your data, and you can delete everything whenever you want.',
-    trustPoint1: 'Local-first',
+      'Plans, notes and quizzes stay tied to your account — or on this device in Guest mode. No ads, no selling your data, and a delete button that actually deletes.',
+    trustPoint1: 'Private by default',
     trustPoint2: 'No ads',
     trustPoint3: 'Delete anytime',
     trustCta: 'Read the privacy note',
@@ -219,7 +219,7 @@ const en = {
         p2Desc: 'Your day, your week and your progress belong together, not in five different tools.',
         p3Title: 'Your data stays yours',
         p3Desc:
-          'The notebook works in your browser first. No ads, no selling data, and a delete button that actually deletes.',
+          'The notebook works with or without an account. No ads, no selling data, and a delete button that actually deletes.',
       },
       audienceTitle: 'Who it is for',
       audience: {
@@ -240,7 +240,7 @@ const en = {
       q1: 'Is Daily Topper free?',
       a1: 'Yes. You can open the demo notebook and use the planner without paying. There is no card required.',
       q2: 'Do I need an account?',
-      a2: 'No. The demo notebook runs in guest mode on this device. An account keeps your profile and progress available the next time you open the app in this browser.',
+      a2: 'No. The demo notebook runs in guest mode on this device. An account keeps your profile and progress available wherever you sign in.',
       q3: 'Where is my data stored?',
       a3: 'By default, everything is stored locally in this browser. If the app is deployed with an account server, your account data is stored with that provider. You can reset or delete your workspace from Settings at any time.',
       q4: 'What happens when I miss a day?',
@@ -268,7 +268,7 @@ const en = {
         'Daily Topper is designed to work without an account. This page explains what the app stores and the controls you have.',
       s1Title: 'The short version',
       s1Body:
-        'Your plan, notes and quiz history stay in your browser by default. We do not run ads, and we do not sell your data.',
+        'Your plan, notes and quiz history are visible only to you. Guest mode keeps them in this browser; with an account they live in your private account storage. We do not run ads, and we do not sell your data.',
       s2Title: 'What the app stores',
       s2Body:
         'Your profile, subjects, study plan, tasks, quiz attempts, notes and uploaded files. Guest data is kept in this browser. If you create an account on a hosted version, that data is stored with the account provider.',
@@ -735,7 +735,7 @@ const en = {
     resetTitle: 'Reset all data?',
     resetConfirm: 'Reset everything',
     deleteAccount: 'Delete account',
-    deleteDesc: 'Permanently remove your account and all local data.',
+    deleteDesc: 'Permanently remove your account and all saved data.',
     deleteTitle: 'Delete your account?',
     deleteConfirm: 'Delete account',
     guestNote: 'You are in Guest mode. All data is stored locally on this device and never leaves it. Create an account to keep your progress.',
@@ -899,7 +899,7 @@ const hi: typeof en = {
     mockupTitle: 'आपका दिन, खूबसूरती से योजनाबद्ध',
     mockupSubtitle: 'साफ़ स्लॉट, सच्ची प्रगति, और एक पन्ना जो आपको ईमानदार रखता है।',
     footerNote: 'पूरे भारत के विद्यार्थियों के लिए प्यार से बनाया गया।',
-    deviceNote: 'आपके डिवाइस पर ही रहता है',
+    deviceNote: 'डिफ़ॉल्ट रूप से निजी',
     nav: {
       inside: 'अंदर क्या है',
       how: 'यह कैसे काम करता है',
@@ -922,8 +922,8 @@ const hi: typeof en = {
     },
     trustTitle: 'आपकी नोटबुक आपकी ही रहती है',
     trustDesc:
-      'योजना, नोट्स और क्विज़ डिफ़ॉल्ट रूप से आपके ब्राउज़र में रहते हैं। कोई विज्ञापन नहीं, डेटा की बिक्री नहीं, और जब चाहें सब कुछ हटा सकते हैं।',
-    trustPoint1: 'ब्राउज़र में सुरक्षित',
+      'योजना, नोट्स और क्विज़ आपके खाते से जुड़े रहते हैं — या गेस्ट मोड में इसी डिवाइस पर। कोई विज्ञापन नहीं, डेटा की बिक्री नहीं, और एक ऐसा डिलीट बटन जो सच में हटाता है।',
+    trustPoint1: 'डिफ़ॉल्ट रूप से निजी',
     trustPoint2: 'कोई विज्ञापन नहीं',
     trustPoint3: 'कभी भी हटाएँ',
     trustCta: 'प्राइवेसी नोट पढ़ें',
@@ -1009,7 +1009,7 @@ const hi: typeof en = {
       q1: 'क्या Daily Topper मुफ़्त है?',
       a1: 'हाँ। आप डेमो नोटबुक खोलकर बिना भुगतान के प्लानर इस्तेमाल कर सकते हैं। कार्ड की ज़रूरत नहीं।',
       q2: 'क्या खाता बनाना ज़रूरी है?',
-      a2: 'नहीं। डेमो नोटबुक इस डिवाइस पर गेस्ट मोड में चलती है। खाता बनाने पर आपकी प्रोफ़ाइल और प्रगति इस ब्राउज़र में अगली बार भी मिलती है।',
+      a2: 'नहीं। डेमो नोटबुक इस डिवाइस पर गेस्ट मोड में चलती है। खाता बनाने पर आपकी प्रोफ़ाइल और प्रगति कहीं भी साइन इन करने पर उपलब्ध रहती है।',
       q3: 'मेरा डेटा कहाँ रहता है?',
       a3: 'डिफ़ॉल्ट रूप से सब कुछ इस ब्राउज़र में locally रहता है। अगर ऐप किसी अकाउंट सर्वर के साथ चल रहा है, तो खाता डेटा उस प्रदाता के पास रहता है। सेटिंग्स से आप कभी भी रीसेट या डिलीट कर सकते हैं।',
       q4: 'दिन छूट जाए तो क्या होता है?',
@@ -1037,7 +1037,7 @@ const hi: typeof en = {
         'Daily Topper बिना खाते के काम करने के लिए बना है। यह पेज बताता है कि ऐप क्या संग्रहीत करता है और आपके पास कौन से नियंत्रण हैं।',
       s1Title: 'छोटी बात',
       s1Body:
-        'आपकी योजना, नोट्स और क्विज़ इतिहास डिफ़ॉल्ट रूप से इस ब्राउज़र में रहते हैं। हम विज्ञापन नहीं दिखाते और आपका डेटा नहीं बेचते।',
+        'आपकी योजना, नोट्स और क्विज़ इतिहास सिर्फ़ आपको दिखते हैं। गेस्ट मोड में ये इस ब्राउज़र में रहते हैं; खाते के साथ ये आपके निजी खाता स्टोरेज में रहते हैं। हम विज्ञापन नहीं दिखाते और आपका डेटा नहीं बेचते।',
       s2Title: 'ऐप क्या संग्रहीत करता है',
       s2Body:
         'आपकी प्रोफ़ाइल, विषय, अध्ययन योजना, कार्य, क्विज़ प्रयास, नोट्स और अपलोड की गई फ़ाइलें। गेस्ट डेटा इस ब्राउज़र में रहता है। होस्टेड वर्ज़न में खाता बनाने पर डेटा खाता प्रदाता के पास रहता है।',
@@ -1504,7 +1504,7 @@ const hi: typeof en = {
     resetTitle: 'सारा डेटा रीसेट करें?',
     resetConfirm: 'सब कुछ रीसेट करें',
     deleteAccount: 'खाता हटाएँ',
-    deleteDesc: 'अपना खाता और सारा स्थानीय डेटा स्थायी रूप से हटाएँ।',
+    deleteDesc: 'अपना खाता और सारा सहेजा डेटा स्थायी रूप से हटाएँ।',
     deleteTitle: 'अपना खाता हटाएँ?',
     deleteConfirm: 'खाता हटाएँ',
     guestNote: 'आप अतिथि मोड में हैं। सारा डेटा इस डिवाइस पर स्थानीय रूप से रहता है। प्रगति बनाए रखने के लिए खाता बनाएँ।',

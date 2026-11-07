@@ -19,7 +19,8 @@ import type {
   Upload,
   UploadKind,
 } from '@/types'
-import { repo, type SignUpResult } from '@/services/repository'
+import { repo, localAuth, type SignUpResult } from '@/services/repository'
+import { clerkDeleteUser, clerkEnabled, clerkSignOut } from '@/services/clerk'
 import { aiService } from '@/services/aiService'
 import {
   generatePlan,
@@ -198,6 +199,8 @@ export interface AppStore extends AppData {
   lastInsight: string
   theme: ThemeId
   hydrate: () => Promise<void>
+  hydrateWithClerk: (user: { userId: string; name: string; email: string }) => Promise<void>
+  hydrateForGuest: () => Promise<void>
   startGuest: () => Promise<void>
   signUp: (name: string, email: string, password: string) => Promise<SignUpResult>
   signIn: (email: string, password: string) => Promise<AppSession>
@@ -253,10 +256,11 @@ export const useAppStore = create<AppStore>((set, get) => ({
   theme: initialTheme(),
 
   hydrate: async () => {
+    // Clerk resolves the session asynchronously; ClerkGate calls
+    // hydrateWithClerk / hydrateForGuest once it is loaded.
+    if (clerkEnabled) return
     try {
-      // Account sessions win over guest mode so a returning email-confirmation
-      // link can restore the account it was opened for.
-      const session = await repo.getSession()
+      const session = await localAuth?.getSession() ?? null
       if (session) {
         try {
           localStorage.removeItem(GUEST_SESSION_KEY)
@@ -288,6 +292,53 @@ export const useAppStore = create<AppStore>((set, get) => ({
     }
   },
 
+  hydrateWithClerk: async ({ userId, name, email }) => {
+    const current = get()
+    if (current.session?.userId === userId && !current.session.guest) {
+      if (!current.hydrated) set({ hydrated: true })
+      return
+    }
+    try {
+      localStorage.removeItem(GUEST_SESSION_KEY)
+    } catch {
+      /* storage blocked — nothing to clear */
+    }
+    const session: AppSession = { userId, name, email, guest: false }
+    try {
+      const loaded = await repo.loadData(userId)
+      const data = loaded ? normalizeData(loaded) : emptyData(session)
+      set({ ...data, session, hydrated: true })
+    } catch (error) {
+      console.error('Failed to load Clerk account data', error)
+      set({ ...emptyData(session), session, hydrated: true })
+    }
+  },
+
+  hydrateForGuest: async () => {
+    const current = get()
+    if (current.session?.guest) {
+      set({ hydrated: true })
+      return
+    }
+    try {
+      const raw = localStorage.getItem(GUEST_SESSION_KEY)
+      if (raw) {
+        const guestSession = JSON.parse(raw) as AppSession
+        const dataRaw = localStorage.getItem(GUEST_DATA_KEY)
+        const data = normalizeData(dataRaw ? (JSON.parse(dataRaw) as AppData) : createSeedData())
+        set({ ...data, session: guestSession, hydrated: true })
+        return
+      }
+    } catch {
+      /* storage blocked — start signed out */
+    }
+    set({
+      ...emptyData({ userId: '', name: '', email: '', guest: false }),
+      session: null,
+      hydrated: true,
+    })
+  },
+
   startGuest: async () => {
     const data = createSeedData()
     const session: AppSession = {
@@ -306,7 +357,8 @@ export const useAppStore = create<AppStore>((set, get) => ({
   },
 
   signUp: async (name, email, password) => {
-    const result = await repo.signUp(name, email, password)
+    if (!localAuth) throw new Error('Accounts are managed by Clerk in this build.')
+    const result = await localAuth.signUp(name, email, password)
     if (!result.session) return result
     localStorage.removeItem(GUEST_SESSION_KEY)
     const data = emptyData(result.session)
@@ -317,7 +369,8 @@ export const useAppStore = create<AppStore>((set, get) => ({
   },
 
   signIn: async (email, password) => {
-    const session = await repo.signIn(email, password)
+    if (!localAuth) throw new Error('Accounts are managed by Clerk in this build.')
+    const session = await localAuth.signIn(email, password)
     localStorage.removeItem(GUEST_SESSION_KEY)
     const loaded = await repo.loadData(session.userId)
     const data = loaded ? normalizeData(loaded) : emptyData(session)
@@ -326,11 +379,16 @@ export const useAppStore = create<AppStore>((set, get) => ({
   },
 
   resendConfirmation: async (email) => {
-    await repo.resendConfirmation(email)
+    await localAuth?.resendConfirmation(email)
   },
 
   logout: async () => {
-    await repo.signOut()
+    const session = get().session
+    if (clerkEnabled && session && !session.guest) {
+      await clerkSignOut()
+    } else if (!clerkEnabled) {
+      await localAuth?.signOut()
+    }
     localStorage.removeItem(GUEST_SESSION_KEY)
     set({
       ...emptyData({ userId: '', name: '', email: '', guest: false }),
@@ -368,6 +426,15 @@ export const useAppStore = create<AppStore>((set, get) => ({
       localStorage.removeItem(GUEST_DATA_KEY)
     } else {
       await repo.deleteAccount(session.userId)
+      if (clerkEnabled) {
+        try {
+          await clerkDeleteUser()
+        } catch (error) {
+          console.warn('Clerk account deletion failed', error)
+        }
+        /* user.delete() already revoked the session; signing out again can throw. */
+        await clerkSignOut().catch(() => undefined)
+      } else await localAuth?.signOut()
     }
     await wipeUploadFiles()
     set({
@@ -376,7 +443,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
       hydrated: true,
       toasts: [],
     })
-    get().pushToast('Account deleted', 'All local data has been removed.', 'info')
+    get().pushToast('Account deleted', 'Your account and saved data have been removed.', 'info')
   },
 
   completeOnboarding: async (payload) => {
