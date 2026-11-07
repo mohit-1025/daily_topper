@@ -158,6 +158,8 @@ AI_BASE_URL=https://api.openai.com/v1
 
 Deploy the frontend and `api/ai.ts` together (Vercel picks it up automatically). On another host, point `VITE_AI_ENDPOINT` at any endpoint that accepts `{ system, user }` and returns `{ text }`.
 
+On Vercel, `vercel.json` rewrites unknown paths to `index.html` so client-side routes such as `/dashboard` survive a page refresh, while `/api/*` stays routed to the serverless function. `VITE_*` variables are read at build time, so set them (plus `OPENAI_API_KEY` if used) in the project's environment variables, and add the deployed `<origin>/auth` URL to Supabase's redirect URLs.
+
 ---
 
 ## Planner logic
