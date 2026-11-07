@@ -65,11 +65,13 @@ export function AuthPage() {
   const [searchParams] = useSearchParams()
   const signIn = useAppStore((state) => state.signIn)
   const signUp = useAppStore((state) => state.signUp)
+  const resendConfirmation = useAppStore((state) => state.resendConfirmation)
   const startGuest = useAppStore((state) => state.startGuest)
   const pushToast = useAppStore((state) => state.pushToast)
   const [mode, setMode] = useState<Mode>(() => (searchParams.get('mode') === 'signup' ? 'signup' : 'login'))
   const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState<'form' | 'guest' | null>(null)
+  const [loading, setLoading] = useState<'form' | 'guest' | 'resend' | null>(null)
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [form, setForm] = useState({
@@ -101,17 +103,34 @@ export function AuthPage() {
     if (!validate()) return
     setLoading('form')
     try {
-      const session =
-        mode === 'login'
-          ? await signIn(form.email.trim(), form.password)
-          : await signUp(form.name.trim(), form.email.trim(), form.password)
+      if (mode === 'login') {
+        const session = await signIn(form.email.trim(), form.password)
+        pushToast('Welcome back!', `Good to see you, ${session.name.split(' ')[0]}.`, 'success')
+      } else {
+        const result = await signUp(form.name.trim(), form.email.trim(), form.password)
+        if (!result.session) {
+          setPendingEmail(form.email.trim())
+          pushToast(t('auth.confirmRequiredTitle'), t('auth.confirmRequiredDesc'), 'success')
+          return
+        }
+        pushToast('Notebook opened', 'Your study space is ready.', 'success')
+      }
       const state = useAppStore.getState()
-      pushToast(
-        mode === 'login' ? 'Welcome back!' : 'Notebook opened',
-        mode === 'login' ? `Good to see you, ${session.name.split(' ')[0]}.` : 'Your study space is ready.',
-        'success',
-      )
       navigate(state.profile?.onboarded ? '/dashboard' : '/onboarding', { replace: true })
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('errors.generic'))
+    } finally {
+      setLoading(null)
+    }
+  }
+
+  const handleResend = async () => {
+    if (!pendingEmail) return
+    setLoading('resend')
+    setError('')
+    try {
+      await resendConfirmation(pendingEmail)
+      pushToast(t('auth.confirmResent'), t('auth.confirmResentDesc', { email: pendingEmail }), 'success')
     } catch (err) {
       setError(err instanceof Error ? err.message : t('errors.generic'))
     } finally {
@@ -173,6 +192,43 @@ export function AuthPage() {
         </section>
 
         <section className="paper-card tape mx-auto w-full max-w-md p-5 sm:p-7 lg:mx-0">
+          {pendingEmail ? (
+            <div>
+              <div className="mb-5">
+                <h2 className="font-display text-3xl font-bold tracking-tight">{t('auth.checkInbox')}</h2>
+                <p className="mt-1 text-base text-muted-foreground">
+                  {t('auth.confirmSent', { email: pendingEmail })}
+                </p>
+              </div>
+
+              <div className="flex items-start gap-3 border-2 border-dashed border-border px-3 py-3">
+                <Mail className="mt-0.5 size-5 shrink-0 text-[var(--margin-line)]" />
+                <p className="text-sm leading-7 text-muted-foreground">{t('auth.confirmHint')}</p>
+              </div>
+
+              {error && (
+                <p className="mt-4 border-l-2 border-[var(--margin-line)] bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive">
+                  {error}
+                </p>
+              )}
+
+              <Button className="mt-5 w-full" onClick={handleResend} loading={loading === 'resend'}>
+                {loading === 'resend' ? t('auth.resending') : t('auth.resend')}
+              </Button>
+              <Button
+                variant="ghost"
+                className="mt-2 w-full"
+                onClick={() => {
+                  setPendingEmail(null)
+                  setMode('login')
+                  setError('')
+                }}
+              >
+                <ArrowLeft className="size-4" /> {t('auth.backToLogin')}
+              </Button>
+            </div>
+          ) : (
+            <>
           <div className="mb-5">
             <h2 className="font-display text-3xl font-bold tracking-tight">
               {mode === 'login' ? t('auth.welcomeBack') : t('auth.signupTab')}
@@ -325,6 +381,8 @@ export function AuthPage() {
           <p className="mt-4 border-t-2 border-dashed border-border pt-3 text-center text-sm text-muted-foreground">
             {t('auth.settingsNote')}
           </p>
+            </>
+          )}
         </section>
       </main>
     </div>

@@ -1,4 +1,5 @@
 export type Language = 'en' | 'hi' | 'ta' | 'te' | 'bn' | 'mr'
+export type ThemeId = 'paper' | 'forest' | 'honey' | 'lavender' | 'ocean' | 'midnight'
 export type EducationLevel = 'school' | 'undergraduate' | 'postgraduate' | 'competitive'
 export type StudyTime = 'morning' | 'afternoon' | 'evening' | 'night'
 export type SlotLength = 25 | 45 | 60 | 90
@@ -26,6 +27,8 @@ export interface Settings {
   language: Language
   studyHours: number
   preferredStudyTime: StudyTime
+  studyStart: string
+  studyEnd: string
   slotLength: SlotLength
   weeklyOffDay: number
   reminders: boolean
@@ -92,6 +95,8 @@ export interface StudySlot {
   source: SlotSource
   note?: string
   skipReason?: string
+  leave?: boolean
+  catchUp?: boolean
   completedAt?: string
   quizAttemptId?: string
 }

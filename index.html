@@ -2,14 +2,41 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta
       name="description"
       content="Daily Topper is a paper-style study planner. Paste your syllabus, pick an exam date, and get a day-by-day plan that moves when life gets in the way."
     />
     <meta name="theme-color" content="#fbfaf4" />
-    <meta name="color-scheme" content="light" />
+    <meta name="color-scheme" content="light dark" />
+    <script>
+      ;(() => {
+        const themes = {
+          paper: ['#fbfaf4', 'light'],
+          forest: ['#f3f7ee', 'light'],
+          honey: ['#fdf6e2', 'light'],
+          lavender: ['#faf6ff', 'light'],
+          ocean: ['#f1f8fa', 'light'],
+          midnight: ['#111726', 'dark'],
+        }
+        let id = 'paper'
+        try {
+          const saved = localStorage.getItem('dt-theme')
+          if (saved === 'dark') id = 'midnight'
+          else if (saved === 'light') id = 'paper'
+          else if (saved && Object.prototype.hasOwnProperty.call(themes, saved)) id = saved
+        } catch {
+          /* default to the paper theme */
+        }
+        const [metaColor, colorScheme] = themes[id]
+        document.documentElement.dataset.theme = id
+        document.documentElement.style.colorScheme = colorScheme
+        document
+          .querySelector('meta[name="theme-color"]')
+          ?.setAttribute('content', metaColor)
+      })()
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

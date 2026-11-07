@@ -2,7 +2,7 @@
 
 A study planner that turns a student's syllabus, confidence and exam dates into a daily plan that actually adapts. Built for the BharatCode Build League hackathon.
 
-Daily Topper is a complete, demo-ready web app: a pre-loaded guest student (Riya), a real planner, quizzes that gate task completion, revision sheets, exam mode with backwards scheduling, progress analytics, a paper-notebook light theme and six-language support. It runs with **zero setup** — no keys, no database, no build flags.
+Daily Topper is a complete, demo-ready web app: a pre-loaded guest student (Riya), a real planner, quizzes that gate task completion, revision sheets, exam mode with backwards scheduling, progress analytics, six paper-notebook themes with matching study soundtracks, and six-language support. It runs with **zero setup** — no keys, no database, no build flags.
 
 ---
 
@@ -78,7 +78,7 @@ api/ai.ts        serverless AI proxy (provider key stays server-side)
 `src/services/repository.ts` exposes one `AppRepository` interface with two adapters:
 
 - **Local (default)** — state in `localStorage`, file blobs in IndexedDB. Guest mode and local accounts work offline.
-- **Supabase** — selected automatically when `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are present. Uses Supabase Auth, a single JSONB `app_state` row per user, and a private `uploads` storage bucket.
+- **Supabase** — selected automatically when `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are present. Uses Supabase Auth (email + password, with email confirmation), a single JSONB `app_state` row per user, and a private `uploads` storage bucket.
 
 Persistence is debounced. Local keys:
 
@@ -93,7 +93,10 @@ Local accounts are a demo convenience, not production auth. Use the Supabase ada
 
 ### Supabase setup (optional)
 
-Run this in the Supabase SQL editor, then set the two `VITE_SUPABASE_*` variables:
+1. Create a project and enable the **Email** provider (enabled by default).
+2. Under **Authentication → URL Configuration**, set the Site URL to your app and add `<your-app-origin>/auth` to the redirect URLs, e.g. `http://localhost:5173/auth`.
+3. Leave **Confirm email** on for real verification. Signup now shows a "Check your inbox" screen; opening the emailed link returns to `/auth`, restores the session and continues onboarding. With confirmation off, users log straight in.
+4. Run this in the Supabase SQL editor, then set the two `VITE_SUPABASE_*` variables:
 
 ```sql
 create table if not exists public.app_state (
@@ -104,6 +107,7 @@ create table if not exists public.app_state (
 
 alter table public.app_state enable row level security;
 
+drop policy if exists "own app state" on public.app_state;
 create policy "own app state" on public.app_state
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
@@ -111,10 +115,13 @@ insert into storage.buckets (id, name, public)
 values ('uploads', 'uploads', false)
 on conflict (id) do nothing;
 
+drop policy if exists "own uploads" on storage.objects;
 create policy "own uploads" on storage.objects
   for all using (bucket_id = 'uploads' and owner = auth.uid())
   with check (bucket_id = 'uploads' and owner = auth.uid());
 ```
+
+The built-in email service is limited to **2 emails per hour** per project; signup attempts beyond that show a "Too many attempts" message until the window resets. Configure custom SMTP under **Authentication → Emails** before sharing the app with real users.
 
 If Supabase is unreachable the session simply stays local; the app never hard-fails on a network call.
 
@@ -170,7 +177,9 @@ Missed slots are detected on load and requeued with their topics. Streaks count 
 ## Design and accessibility
 
 - Paper notebook palette: paper `#fbfaf4`, ruled blue `#b9d3e6`, margin red `#e8928f`, ink `#23325e`, highlighter `#ffe45c`, tape `#f3d9a4`.
-- Light theme only, driven by CSS variables; ruled background, handwritten type, hard offset shadows and taped cards.
+- Six named themes driven by CSS variables, all reachable from the palette menu beside the streak. **Paper & Ink** is the default white notebook; **Forest Notes**, **Honey & Bee**, **Lavender Press** and **Ocean Notes** recolour the same ruled-paper system; **Midnight Ink** is the optional chalk-on-blackboard dark theme. The choice persists, and charts, doodles, focus rings and hard shadows adapt.
+- Each theme has its own nature-led study soundscape, synthesised live with the Web Audio API — no audio files, no licensing: *Rain on Paper* (soft rain on a quiet window with a rare distant bird), *Forest Birdsong* (wind, leaves and woodland calls), *Meadow & Bees* (gentle breeze, grass rustle and far-off bees), *Breeze & Chimes* (airy wind chimes), *Ocean Waves* (rolling surf and gulls) and *Night Crickets* (night breeze with cricket pulses). The ambience carries each theme while the tonal layer stays sparse, so no two soundscapes sound alike. The music button beside the theme menu starts/stops it, switching themes crossfades to the new patch, and hovering (or focusing) the button reveals a volume slider. The volume level persists, audio only starts after a click, and it stops on logout.
+- Ruled background, handwritten type and taped cards stay consistent across themes.
 - Mobile-first: bottom tabs under 768px, sidebar above, bottom-sheet dialogs on small screens, tables become cards, calendar becomes agenda.
 - 44px touch targets, focus-visible rings, labelled controls, `aria-label`s on navigation, keyboard-operable Radix primitives, reduced horizontal overflow at 360px.
 - Loading skeletons, empty states, toasts and confirmation dialogs for destructive actions.

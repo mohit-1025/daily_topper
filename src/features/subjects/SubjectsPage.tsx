@@ -216,7 +216,7 @@ export function SubjectsPage() {
               <div className="space-y-1.5">
                 <Label>{t('subjects.ratingLabel')}</Label>
                 <div className="border-2 border-dashed border-border p-3">
-                  <RatingStars value={rating} onChange={setRating} size="lg" showLabel />
+                  <RatingStars value={rating} onChange={setRating} size="lg" stretch />
                   <div className="mt-2 flex justify-between text-sm text-muted-foreground">
                     <span>{t('subjects.veryWeak')}</span>
                     <span>{ratingLabels[rating - 1]}</span>

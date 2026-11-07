@@ -20,6 +20,7 @@ import {
   ArrowLeft,
   ArrowRight,
   CalendarDays,
+  CalendarOff,
   ChevronLeft,
   ChevronRight,
   Clock,
@@ -42,10 +43,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { useAppStore } from '@/store/useAppStore'
+import { useAppStore, type LeaveResult } from '@/store/useAppStore'
 import { slotsForDate } from '@/services/plannerService'
 import { addMinutesToTime, cn, dateLocale, formatDuration, longDate, todayISO } from '@/lib/utils'
-import { CalendarDoodle, CircleCrossDoodle, PencilDoodle } from '@/components/shared/doodles'
+import { CalendarDoodle, PencilDoodle } from '@/components/shared/doodles'
 import type { Exam, StudySlot } from '@/types'
 
 type View = 'month' | 'week' | 'day'
@@ -68,14 +69,14 @@ export function PlanPage() {
   const examMode = useAppStore((state) => state.examMode)
   const startSlot = useAppStore((state) => state.startSlot)
   const regeneratePlan = useAppStore((state) => state.regeneratePlan)
-  const skipDay = useAppStore((state) => state.skipDay)
+  const takeLeaveToday = useAppStore((state) => state.takeLeaveToday)
 
   const [view, setView] = useState<View>('month')
   const [cursor, setCursor] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [detail, setDetail] = useState<StudySlot | null>(null)
-  const [skipOpen, setSkipOpen] = useState(false)
-  const [skippedDay, setSkippedDay] = useState<string | null>(null)
+  const [leaveOpen, setLeaveOpen] = useState(false)
+  const [leaveNotice, setLeaveNotice] = useState<LeaveResult | null>(null)
   const locale = dateLocale(settings.language)
   const today = todayISO()
   const subjectById = new Map(subjects.map((subject) => [subject.id, subject]))
@@ -111,30 +112,16 @@ export function PlanPage() {
     [slots, range],
   )
 
-  const movedSlotIds = useMemo(() => {
-    if (!skippedDay) return new Set<string>()
-    const movedTopicIds = new Set(
-      slots
-        .filter((slot) => slot.date === skippedDay && slot.status === 'missed')
-        .flatMap((slot) => slot.topicIds),
-    )
-    if (!movedTopicIds.size) return new Set<string>()
-    const firstSlotByTopic = new Map<string, StudySlot>()
-    const upcoming = slots
-      .filter((slot) => slot.status === 'scheduled' && slot.date > skippedDay)
-      .sort((a, b) => `${a.date}${a.start}`.localeCompare(`${b.date}${b.start}`))
-    for (const slot of upcoming) {
-      for (const topicId of slot.topicIds) {
-        if (movedTopicIds.has(topicId) && !firstSlotByTopic.has(topicId)) firstSlotByTopic.set(topicId, slot)
-      }
-    }
-    return new Set([...firstSlotByTopic.values()].map((slot) => slot.id))
-  }, [slots, skippedDay])
-  const isMoved = (slot: StudySlot) => movedSlotIds.has(slot.id)
+  const isMoved = (slot: StudySlot) => Boolean(slot.catchUp)
 
-  const skippableDays = Array.from({ length: 8 }, (_, index) => addDays(new Date(), -index))
-    .map((day) => format(day, 'yyyy-MM-dd'))
-    .filter((iso) => slots.some((slot) => slot.date === iso && slot.status === 'scheduled'))
+  const todayOpenSlots = useMemo(
+    () => slotsForDate(slots, today).filter((slot) => slot.status === 'scheduled'),
+    [slots, today],
+  )
+  const leaveTaken = useMemo(
+    () => slots.some((slot) => slot.date === today && slot.leave),
+    [slots, today],
+  )
 
   const move = (direction: number) => {
     if (view === 'month') setCursor((current) => (direction > 0 ? addMonths(current, 1) : subMonths(current, 1)))
@@ -158,10 +145,10 @@ export function PlanPage() {
   const detailSubject = activeDetail ? subjectById.get(activeDetail.subjectId) : undefined
   const detailTopics = activeDetail ? topics.filter((topic) => activeDetail.topicIds.includes(topic.id)) : []
 
-  const confirmSkipDay = (iso: string) => {
-    skipDay(iso)
-    setSkipOpen(false)
-    setSkippedDay(iso)
+  const confirmLeave = () => {
+    const result = takeLeaveToday()
+    setLeaveOpen(false)
+    if (result.skipped > 0) setLeaveNotice(result)
   }
 
   return (
@@ -172,8 +159,13 @@ export function PlanPage() {
         eyebrow={longDate(new Date(), settings.language)}
         actions={
           <>
-            <Button variant="outline" size="sm" onClick={() => setSkipOpen(true)}>
-              <CircleCrossDoodle className="size-5" /> {t('plan.skipDay')}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setLeaveOpen(true)}
+              disabled={leaveTaken || todayOpenSlots.length === 0}
+            >
+              <CalendarOff className="size-4" /> {leaveTaken ? t('plan.leaveTaken') : t('plan.takeLeave')}
             </Button>
             <Button variant="outline" size="sm" onClick={() => setCursor(new Date())}>
               <CalendarDays className="size-4" /> {t('plan.today')}
@@ -185,18 +177,18 @@ export function PlanPage() {
         }
       />
 
-      {skippedDay && (
+      {leaveNotice && (
         <div className="flex items-start gap-3 border-2 border-foreground bg-accent/60 px-4 py-3">
           <PencilDoodle className="mt-1 size-5 shrink-0" />
           <div className="flex-1">
-            <p className="font-display text-xl font-bold">{t('plan.skippedNote')}</p>
+            <p className="font-display text-xl font-bold">{t('plan.leaveNote')}</p>
             <p className="text-base text-muted-foreground">
-              {format(new Date(`${skippedDay}T12:00:00`), 'd MMM', { locale })} · {t('plan.skipDayDesc')}
+              {t('plan.leaveMoved', { count: leaveNotice.skipped, topics: leaveNotice.carriedTopics })}
             </p>
           </div>
           <button
             type="button"
-            onClick={() => setSkippedDay(null)}
+            onClick={() => setLeaveNotice(null)}
             className="text-sm font-semibold underline underline-offset-4"
           >
             {t('common.close')}
@@ -350,7 +342,7 @@ export function PlanPage() {
                           className={cn(
                             'block w-full border-l-2 border-foreground pl-1.5 text-left',
                             isMoved(slot) && 'slot-moved',
-                            skippedDay && isMoved(slot) && 'animate-[slot-in_0.35s_ease-out]',
+                            isMoved(slot) && 'animate-[slot-in_0.35s_ease-out]',
                             slot.status === 'missed' && 'missed-strike text-destructive',
                           )}
                         >
@@ -389,9 +381,17 @@ export function PlanPage() {
                       <Trophy className="size-3.5" /> {t('plan.examDay')}
                     </Badge>
                   )}
-                  <Button variant="outline" size="sm" onClick={() => setSkipOpen(true)}>
-                    <CircleCrossDoodle className="size-5" /> {t('plan.skipDay')}
-                  </Button>
+                  {format(cursor, 'yyyy-MM-dd') === today && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setLeaveOpen(true)}
+                      disabled={leaveTaken || todayOpenSlots.length === 0}
+                    >
+                      <CalendarOff className="size-4" />{' '}
+                      {leaveTaken ? t('plan.leaveTaken') : t('plan.takeLeave')}
+                    </Button>
+                  )}
                 </div>
               </div>
               <div>
@@ -417,7 +417,7 @@ export function PlanPage() {
                       className={cn(
                         'flex w-full items-center gap-3 border-b-2 border-dashed border-border py-3 text-left last:border-b-0',
                         moved && 'slot-moved px-2',
-                        skippedDay && moved && 'animate-[slot-in_0.35s_ease-out]',
+                        moved && 'animate-[slot-in_0.35s_ease-out]',
                         slot.status === 'missed' && 'slot-missed',
                       )}
                     >
@@ -514,37 +514,27 @@ export function PlanPage() {
         ))}
       </div>
 
-      <Dialog open={skipOpen} onOpenChange={setSkipOpen}>
+      <Dialog open={leaveOpen} onOpenChange={setLeaveOpen}>
         <DialogContent size="sm" className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{t('plan.skipDayTitle')}</DialogTitle>
-            <DialogDescription>{t('plan.skipDayDesc')}</DialogDescription>
+            <DialogTitle>{t('plan.leaveTitle')}</DialogTitle>
+            <DialogDescription>{t('plan.leaveDesc')}</DialogDescription>
           </DialogHeader>
           <DialogBody>
-            {skippableDays.length === 0 && <p className="py-4 text-center text-muted-foreground">{t('plan.skipDayEmpty')}</p>}
-            <div className="space-y-1">
-              {skippableDays.map((iso) => {
-                const count = slots.filter((slot) => slot.date === iso && slot.status === 'scheduled').length
-                return (
-                  <button
-                    key={iso}
-                    type="button"
-                    onClick={() => confirmSkipDay(iso)}
-                    className="flex w-full items-center justify-between border-b-2 border-dashed border-border py-2.5 text-left"
-                  >
-                    <span className="flex items-center gap-2 font-semibold">
-                      <CircleCrossDoodle className="size-5 text-[var(--margin-line)]" />
-                      {format(new Date(`${iso}T12:00:00`), 'EEEE, d MMM', { locale })}
-                    </span>
-                    <span className="text-sm text-muted-foreground">{count} slots</span>
-                  </button>
-                )
-              })}
+            <div className="border-2 border-dashed border-border px-3 py-2.5">
+              <p className="font-semibold">{format(new Date(), 'EEEE, d MMMM', { locale })}</p>
+              <p className="text-sm text-muted-foreground">
+                {todayOpenSlots.length} sessions ·{' '}
+                {formatDuration(todayOpenSlots.reduce((sum, slot) => sum + slot.duration, 0))}
+              </p>
             </div>
           </DialogBody>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setSkipOpen(false)}>
-              {t('common.close')}
+            <Button variant="outline" onClick={() => setLeaveOpen(false)}>
+              {t('common.cancel')}
+            </Button>
+            <Button onClick={confirmLeave}>
+              <CalendarOff className="size-4" /> {t('plan.leaveConfirm')}
             </Button>
           </DialogFooter>
         </DialogContent>

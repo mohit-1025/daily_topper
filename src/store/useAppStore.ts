@@ -12,32 +12,71 @@ import type {
   RevisionSheet,
   Settings,
   Subject,
+  ThemeId,
   Toast,
   ToastKind,
   Topic,
   Upload,
   UploadKind,
 } from '@/types'
-import { repo } from '@/services/repository'
+import { repo, type SignUpResult } from '@/services/repository'
 import { aiService } from '@/services/aiService'
-import { generatePlan } from '@/services/plannerService'
+import {
+  generatePlan,
+  absorbBacklog,
+  presetStudyWindow,
+  roundClockToFive,
+  slotEndMinutes,
+} from '@/services/plannerService'
 import { createSeedData, seedAssetBlobs } from '@/services/seed'
 import { topicsForSubjectName } from '@/services/knowledge'
 import { saveUploadFile, removeUploadFile, wipeUploadFiles } from '@/services/fileStore'
 import { isoDaysAgo, subjectColor, todayISO, uid } from '@/lib/utils'
+import { DEFAULT_THEME, isThemeId } from '@/lib/themes'
 
 const GUEST_SESSION_KEY = 'dt-guest-session-v1'
 const GUEST_DATA_KEY = 'dt-data-guest'
+const THEME_KEY = 'dt-theme'
+
+function initialTheme(): ThemeId {
+  try {
+    const saved = localStorage.getItem(THEME_KEY)
+    if (saved === 'light' || saved === 'dark') {
+      const migrated: ThemeId = saved === 'dark' ? 'midnight' : 'paper'
+      localStorage.setItem(THEME_KEY, migrated)
+      return migrated
+    }
+    if (isThemeId(saved)) return saved
+  } catch {
+    /* storage blocked — use the default */
+  }
+  return DEFAULT_THEME
+}
 
 const DEFAULT_SETTINGS: Settings = {
   language: 'en',
   studyHours: 4,
   preferredStudyTime: 'evening',
+  studyStart: '17:00',
+  studyEnd: '21:00',
   slotLength: 45,
   weeklyOffDay: 0,
   reminders: true,
   reminderTime: '19:30',
   sound: true,
+}
+
+function normalizeSettings(settings: Settings): Settings {
+  const preset = presetStudyWindow(settings.preferredStudyTime)
+  return {
+    ...settings,
+    studyStart: roundClockToFive(settings.studyStart || preset.start, preset.start),
+    studyEnd: roundClockToFive(settings.studyEnd || preset.end, preset.end),
+  }
+}
+
+function normalizeData(data: AppData): AppData {
+  return { ...data, settings: normalizeSettings(data.settings) }
 }
 
 function emptyProfile(session: AppSession): Profile {
@@ -139,6 +178,13 @@ export interface OnboardingSubjects {
   selfRating: number
 }
 
+export interface LeaveResult {
+  skipped: number
+  carriedTopics: number
+  addedSlots: number
+  unscheduledTopics: number
+}
+
 export interface OnboardingPayload {
   profile: Partial<Profile>
   settings: Partial<Settings>
@@ -150,10 +196,12 @@ export interface AppStore extends AppData {
   hydrated: boolean
   toasts: Toast[]
   lastInsight: string
+  theme: ThemeId
   hydrate: () => Promise<void>
   startGuest: () => Promise<void>
-  signUp: (name: string, email: string, password: string) => Promise<AppSession>
+  signUp: (name: string, email: string, password: string) => Promise<SignUpResult>
   signIn: (email: string, password: string) => Promise<AppSession>
+  resendConfirmation: (email: string) => Promise<void>
   logout: () => Promise<void>
   resetDemo: () => Promise<void>
   resetAllData: () => Promise<void>
@@ -183,7 +231,7 @@ export interface AppStore extends AppData {
   finishTimer: () => void
   stopTimer: () => void
   skipSlot: (slotId: string, reason?: string) => void
-  skipDay: (date: string) => void
+  takeLeaveToday: () => LeaveResult
   submitAttempt: (attempt: QuizAttempt, slotId?: string) => void
   processMissedSlots: (silent?: boolean) => void
   getRevisionSheet: (subjectId: string, topicId: string) => Promise<RevisionSheet>
@@ -193,6 +241,7 @@ export interface AppStore extends AppData {
   pushToast: (title: string, description?: string, kind?: ToastKind) => void
   dismissToast: (id: string) => void
   setLanguage: (language: Language) => void
+  setTheme: (theme: ThemeId) => void
 }
 
 export const useAppStore = create<AppStore>((set, get) => ({
@@ -201,9 +250,24 @@ export const useAppStore = create<AppStore>((set, get) => ({
   hydrated: false,
   toasts: [],
   lastInsight: '',
+  theme: initialTheme(),
 
   hydrate: async () => {
     try {
+      // Account sessions win over guest mode so a returning email-confirmation
+      // link can restore the account it was opened for.
+      const session = await repo.getSession()
+      if (session) {
+        try {
+          localStorage.removeItem(GUEST_SESSION_KEY)
+        } catch {
+          /* storage blocked — nothing to clear */
+        }
+        const loaded = await repo.loadData(session.userId)
+        const data = loaded ? normalizeData(loaded) : emptyData(session)
+        set({ ...data, session, hydrated: true })
+        return
+      }
       let guestRaw: string | null = null
       try {
         guestRaw = localStorage.getItem(GUEST_SESSION_KEY)
@@ -211,19 +275,13 @@ export const useAppStore = create<AppStore>((set, get) => ({
         guestRaw = null
       }
       if (guestRaw) {
-        const session = JSON.parse(guestRaw) as AppSession
+        const guestSession = JSON.parse(guestRaw) as AppSession
         const raw = localStorage.getItem(GUEST_DATA_KEY)
-        const data = raw ? (JSON.parse(raw) as AppData) : createSeedData()
-        set({ ...data, session, hydrated: true })
+        const data = normalizeData(raw ? (JSON.parse(raw) as AppData) : createSeedData())
+        set({ ...data, session: guestSession, hydrated: true })
         return
       }
-      const session = await repo.getSession()
-      if (!session) {
-        set({ hydrated: true })
-        return
-      }
-      const data = (await repo.loadData(session.userId)) ?? emptyData(session)
-      set({ ...data, session, hydrated: true })
+      set({ hydrated: true })
     } catch (error) {
       console.error('Failed to hydrate app', error)
       set({ hydrated: true })
@@ -248,21 +306,27 @@ export const useAppStore = create<AppStore>((set, get) => ({
   },
 
   signUp: async (name, email, password) => {
-    const session = await repo.signUp(name, email, password)
+    const result = await repo.signUp(name, email, password)
+    if (!result.session) return result
     localStorage.removeItem(GUEST_SESSION_KEY)
-    const data = emptyData(session)
+    const data = emptyData(result.session)
     data.profile = { ...data.profile!, name }
-    await repo.saveData(session.userId, data)
-    set({ ...data, session, hydrated: true })
-    return session
+    await repo.saveData(result.session.userId, data)
+    set({ ...data, session: result.session, hydrated: true })
+    return result
   },
 
   signIn: async (email, password) => {
     const session = await repo.signIn(email, password)
     localStorage.removeItem(GUEST_SESSION_KEY)
-    const data = (await repo.loadData(session.userId)) ?? emptyData(session)
+    const loaded = await repo.loadData(session.userId)
+    const data = loaded ? normalizeData(loaded) : emptyData(session)
     set({ ...data, session, hydrated: true })
     return session
+  },
+
+  resendConfirmation: async (email) => {
+    await repo.resendConfirmation(email)
   },
 
   logout: async () => {
@@ -350,6 +414,8 @@ export const useAppStore = create<AppStore>((set, get) => ({
     const replanKeys: (keyof Settings)[] = [
       'studyHours',
       'preferredStudyTime',
+      'studyStart',
+      'studyEnd',
       'slotLength',
       'weeklyOffDay',
     ]
@@ -594,6 +660,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
       return
     }
     const today = todayISO()
+    const leaveToday = state.slots.some((slot) => slot.date === today && slot.leave)
     const backlogTopicIds = state.slots
       .filter(
         (slot) =>
@@ -610,12 +677,17 @@ export const useAppStore = create<AppStore>((set, get) => ({
       attempts: state.attempts,
       backlogTopicIds,
       days,
+      startOffset: leaveToday ? 1 : 0,
       busySlots: state.slots.filter(
         (slot) => slot.date >= today && (slot.status === 'done' || slot.status === 'running'),
       ),
     })
     const preserved = state.slots.filter(
-      (slot) => !(slot.date >= today && slot.status === 'scheduled'),
+      (slot) =>
+        !(
+          slot.date >= today &&
+          (slot.status === 'scheduled' || (slot.date === today && slot.status === 'missed'))
+        ),
     )
     const timer = state.timer
     const merged = [...preserved]
@@ -629,8 +701,21 @@ export const useAppStore = create<AppStore>((set, get) => ({
       }
       merged.push(slot)
     }
+    const now = new Date()
+    const nowMinutes = now.getHours() * 60 + now.getMinutes()
+    const withElapsed = merged.map((slot) =>
+      slot.status === 'scheduled' && slot.date === today && slotEndMinutes(slot) < nowMinutes
+        ? { ...slot, status: 'missed' as const }
+        : slot,
+    )
+    const absorbed = absorbBacklog({
+      slots: withElapsed.sort((a, b) => `${a.date}${a.start}`.localeCompare(`${b.date}${b.start}`)),
+      topics: state.topics,
+      settings: state.settings,
+      examMode: state.examMode,
+    })
     set({
-      slots: merged.sort((a, b) => `${a.date}${a.start}`.localeCompare(`${b.date}${b.start}`)),
+      slots: absorbed.slots,
       lastInsight:
         state.settings.language === 'hi'
           ? `आपके ${state.subjects.length} विषयों, कमज़ोरी और बैकलॉग के आधार पर योजना बनाई गई।`
@@ -713,30 +798,55 @@ export const useAppStore = create<AppStore>((set, get) => ({
     const state = get()
     const slot = state.slots.find((s) => s.id === slotId)
     if (!slot) return
+    const marked = state.slots.map((s) =>
+      s.id === slotId ? { ...s, status: 'skipped' as const, skipReason: reason || undefined } : s,
+    )
+    const absorbed = absorbBacklog({
+      slots: marked,
+      topics: state.topics,
+      settings: state.settings,
+      examMode: state.examMode,
+    })
     set({
-      slots: state.slots.map((s) =>
-        s.id === slotId ? { ...s, status: 'skipped', skipReason: reason || undefined } : s,
-      ),
+      slots: absorbed.slots,
       timer: state.timer?.slotId === slotId ? null : state.timer,
     })
-    get().replan()
     get().pushToast('Slot skipped', 'Its topics were re-queued into your upcoming slots.', 'warning')
   },
 
-  skipDay: (date) => {
+  takeLeaveToday: () => {
     const state = get()
-    const openSlots = state.slots.filter((slot) => slot.date === date && slot.status === 'scheduled')
+    const today = todayISO()
+    const openSlots = state.slots.filter((slot) => slot.date === today && slot.status === 'scheduled')
     if (!openSlots.length) {
-      get().pushToast('Nothing to skip', 'That day has no unfinished slots.', 'info')
-      return
+      get().pushToast('Nothing to skip', 'Today has no unfinished sessions.', 'info')
+      return { skipped: 0, carriedTopics: 0, addedSlots: 0, unscheduledTopics: 0 }
     }
     const ids = new Set(openSlots.map((slot) => slot.id))
+    const marked = state.slots.map((slot) =>
+      ids.has(slot.id) ? { ...slot, status: 'skipped' as const, leave: true } : slot,
+    )
+    const absorbed = absorbBacklog({
+      slots: marked,
+      topics: state.topics,
+      settings: state.settings,
+      examMode: state.examMode,
+    })
     set({
-      slots: state.slots.map((slot) => (ids.has(slot.id) ? { ...slot, status: 'missed' } : slot)),
+      slots: absorbed.slots,
       timer: state.timer && ids.has(state.timer.slotId) ? null : state.timer,
     })
-    get().replan()
-    get().pushToast('Plan updated. Nothing dropped.', 'The missed topics moved into your next open slots.', 'success')
+    get().pushToast(
+      'Leave taken for today',
+      `${openSlots.length} session${openSlots.length > 1 ? 's' : ''} moved into upcoming days — nothing extra today.`,
+      'success',
+    )
+    return {
+      skipped: openSlots.length,
+      carriedTopics: absorbed.carriedTopicIds.length,
+      addedSlots: absorbed.addedSlots,
+      unscheduledTopics: absorbed.unscheduledTopicIds.length,
+    }
   },
 
   submitAttempt: (attempt, slotId) => {    const state = get()
@@ -792,12 +902,16 @@ export const useAppStore = create<AppStore>((set, get) => ({
     })
     if (!missed.length) return
     const ids = new Set(missed.map((slot) => slot.id))
-    set({
-      slots: state.slots.map((slot) =>
-        ids.has(slot.id) ? { ...slot, status: 'missed' } : slot,
-      ),
+    const marked = state.slots.map((slot) =>
+      ids.has(slot.id) ? { ...slot, status: 'missed' as const } : slot,
+    )
+    const absorbed = absorbBacklog({
+      slots: marked,
+      topics: state.topics,
+      settings: state.settings,
+      examMode: state.examMode,
     })
-    get().replan()
+    set({ slots: absorbed.slots })
     if (!silent) {
       get().pushToast(
         `${missed.length} slot${missed.length > 1 ? 's' : ''} missed`,
@@ -953,6 +1067,15 @@ export const useAppStore = create<AppStore>((set, get) => ({
   setLanguage: (language) => {
     set({ settings: { ...get().settings, language } })
     document.documentElement.lang = language
+  },
+
+  setTheme: (theme) => {
+    try {
+      localStorage.setItem(THEME_KEY, theme)
+    } catch {
+      /* private mode — theme still applies for this session */
+    }
+    set({ theme })
   },
 }))
 
