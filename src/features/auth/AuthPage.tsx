@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { SignIn, SignUp } from '@clerk/react'
 import { ArrowLeft, Check, Eye, EyeOff, Lock, Mail, User } from 'lucide-react'
 import { Logo } from '@/components/shared/brand'
 import { CalendarDoodle, NoteDoodle, PencilDoodle, TickDoodle } from '@/components/shared/doodles'
 import { Button } from '@/components/ui/button'
 import { Input, Label } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { clerkEnabled } from '@/services/clerk'
 import { useAppStore } from '@/store/useAppStore'
 import { cn } from '@/lib/utils'
 
@@ -251,6 +253,24 @@ export function AuthPage() {
               <TabsTrigger value="signup">{t('auth.signupTab')}</TabsTrigger>
             </TabsList>
 
+            {clerkEnabled ? (
+              <div className="flex justify-center pt-3">
+                {mode === 'login' ? (
+                  <SignIn
+                    routing="hash"
+                    signUpUrl="/auth?mode=signup"
+                    fallbackRedirectUrl="/dashboard"
+                  />
+                ) : (
+                  <SignUp
+                    routing="hash"
+                    signInUrl="/auth"
+                    fallbackRedirectUrl="/dashboard"
+                  />
+                )}
+              </div>
+            ) : (
+              <>
             <TabsContent value="login" forceMount className={cn(mode !== 'login' && 'hidden')}>
               <form onSubmit={handleSubmit} className="space-y-4 pt-1" noValidate>
                 <Field id="login-email" label={t('common.email')} icon={Mail} error={fieldErrors.email}>
@@ -365,6 +385,8 @@ export function AuthPage() {
                 </Button>
               </form>
             </TabsContent>
+              </>
+            )}
           </Tabs>
 
           <div className="my-5 flex items-center gap-3">

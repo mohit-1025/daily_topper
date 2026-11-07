@@ -78,7 +78,7 @@ api/ai.ts        serverless AI proxy (provider key stays server-side)
 `src/services/repository.ts` exposes one `AppRepository` interface with two adapters:
 
 - **Local (default)** — state in `localStorage`, file blobs in IndexedDB. Guest mode and local accounts work offline.
-- **Supabase** — selected automatically when `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are present. Uses Supabase Auth (email + password, with email confirmation), a single JSONB `app_state` row per user, and a private `uploads` storage bucket.
+- **Supabase** — selected automatically when `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are present. Stores a single JSONB `app_state` row per user plus a private `uploads` bucket. Identity comes from Clerk; Supabase only stores data.
 
 Persistence is debounced. Local keys:
 
@@ -89,18 +89,18 @@ Persistence is debounced. Local keys:
 | `dt-data-<userId>` | Per-account app data |
 | `dt-ai-cache-v1` | Validated AI responses, capped at 160 entries |
 
-Local accounts are a demo convenience, not production auth. Use the Supabase adapter for real accounts.
+Local accounts are a demo convenience for zero-setup mode. With `VITE_CLERK_PUBLISHABLE_KEY` set, Clerk handles sign-up, email verification and sessions instead.
 
-### Supabase setup (optional)
+### Clerk + Supabase setup
 
-1. Create a project and enable the **Email** provider (enabled by default).
-2. Under **Authentication → URL Configuration**, set the Site URL to your app and add `<your-app-origin>/auth` to the redirect URLs, e.g. `http://localhost:5173/auth`.
-3. Leave **Confirm email** on for real verification. Signup now shows a "Check your inbox" screen; opening the emailed link returns to `/auth`, restores the session and continues onboarding. With confirmation off, users log straight in.
-4. Run this in the Supabase SQL editor, then set the two `VITE_SUPABASE_*` variables:
+1. Copy the publishable key from the Clerk Dashboard into `VITE_CLERK_PUBLISHABLE_KEY`. `CLERK_SECRET_KEY` is server-side only — never expose it in a `VITE_` variable.
+2. In Clerk Dashboard → **Sessions → Customize session token**, add the claim `{ "role": "authenticated" }`; Supabase maps it to the `authenticated` Postgres role.
+3. In Supabase → **Authentication → Third-Party Auth**, add a Clerk integration with your domain (development domains look like `https://<slug>.clerk.accounts.dev`).
+4. Create the table, bucket and Clerk-scoped policies:
 
 ```sql
 create table if not exists public.app_state (
-  user_id uuid primary key references auth.users(id) on delete cascade,
+  user_id text primary key,
   data jsonb not null,
   updated_at timestamptz not null default now()
 );
@@ -109,7 +109,8 @@ alter table public.app_state enable row level security;
 
 drop policy if exists "own app state" on public.app_state;
 create policy "own app state" on public.app_state
-  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+  for all using ((select auth.jwt()->>'sub') = user_id)
+  with check ((select auth.jwt()->>'sub') = user_id);
 
 insert into storage.buckets (id, name, public)
 values ('uploads', 'uploads', false)
@@ -117,11 +118,19 @@ on conflict (id) do nothing;
 
 drop policy if exists "own uploads" on storage.objects;
 create policy "own uploads" on storage.objects
-  for all using (bucket_id = 'uploads' and owner = auth.uid())
-  with check (bucket_id = 'uploads' and owner = auth.uid());
+  for all using (
+    bucket_id = 'uploads'
+    and (storage.foldername(name))[1] = (select auth.jwt()->>'sub')
+  )
+  with check (
+    bucket_id = 'uploads'
+    and (storage.foldername(name))[1] = (select auth.jwt()->>'sub')
+  );
 ```
 
-The built-in email service is limited to **2 emails per hour** per project; signup attempts beyond that show a "Too many attempts" message until the window resets. Configure custom SMTP under **Authentication → Emails** before sharing the app with real users.
+Uploads are stored under `<clerk-user-id>/<file-id>`, so the folder check scopes them per user. `src/services/supabase.ts` attaches the Clerk session token to every Supabase request.
+
+Users created before the Clerk migration used Supabase auth UUIDs; those rows are not linked to Clerk accounts automatically.
 
 If Supabase is unreachable the session simply stays local; the app never hard-fails on a network call.
 

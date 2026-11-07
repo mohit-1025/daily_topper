@@ -596,7 +596,7 @@ export function SettingsPage() {
         open={confirmLogout}
         onOpenChange={setConfirmLogout}
         title={t('settings.signOut')}
-        description="You can come back anytime — your progress is saved locally."
+        description="You can come back anytime — your progress is saved."
         confirmLabel={t('settings.signOut')}
         destructive
         onConfirm={() => {
