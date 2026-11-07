@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Flame, LogOut, Settings, Sparkles, UserRound } from 'lucide-react'
-import { ThemeToggle } from '@/components/shared/theme-toggle'
+import { Flame, LogOut, Settings, TrendingUp, UserRound } from 'lucide-react'
+import { PencilDoodle } from '@/components/shared/doodles'
 import { Avatar, AvatarFallback } from '@/components/ui/misc'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -29,28 +29,26 @@ export function Header() {
   const language = (i18n.language as 'en' | 'hi') || 'en'
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-30 border-b-2 border-foreground/80 bg-background/95 backdrop-blur-sm">
       <div className="flex h-[68px] items-center gap-2 px-4 sm:px-6">
         <div className="min-w-0 flex-1">
-          <p className="truncate font-display text-[15px] font-bold leading-tight sm:text-lg">
+          <p className="truncate font-display text-lg leading-tight sm:text-xl">
             {t(greetingKey())}, {firstName}{' '}
-            <span aria-hidden>👋</span>
+            <PencilDoodle className="inline size-4 -translate-y-0.5 text-foreground" aria-hidden />
           </p>
-          <p className="mt-0.5 hidden text-xs text-muted-foreground xs:block">
+          <p className="mt-0.5 hidden text-sm text-muted-foreground xs:block">
             {longDate(new Date(), language)}
           </p>
         </div>
 
         <div
-          className="flex h-9 items-center gap-1.5 rounded-full border border-accent/25 bg-accent/10 px-2.5 text-accent"
+          className="flex h-9 items-center gap-1.5 rounded-[4px_11px_6px_9px] border-2 border-foreground bg-accent/60 px-2.5 text-foreground shadow-[2px_2px_0_hsl(var(--foreground)/0.2)]"
           title={`${t('streak.current')}: ${streak.current} · ${t('streak.best')}: ${streak.best}`}
         >
-          <Flame className="size-4 fill-accent" />
-          <span className="text-sm font-bold tabular-nums">{streak.current}</span>
-          <span className="hidden text-[11px] font-medium sm:inline">{t('streak.label')}</span>
+          <Flame className="size-4" strokeWidth={2.2} />
+          <span className="text-base font-bold tabular-nums">{streak.current}</span>
+          <span className="hidden text-sm sm:inline">{t('streak.label')}</span>
         </div>
-
-        <ThemeToggle />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -58,7 +56,7 @@ export function Header() {
               className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               aria-label="Open account menu"
             >
-              <Avatar className="size-9 ring-2 ring-border">
+              <Avatar className="size-9 border-2 border-foreground">
                 <AvatarFallback>{initials(profile?.name ?? 'Student')}</AvatarFallback>
               </Avatar>
             </button>
@@ -84,7 +82,7 @@ export function Header() {
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link to="/progress">
-                <Sparkles className="size-4" />
+                <TrendingUp className="size-4" />
                 {t('nav.progress')}
               </Link>
             </DropdownMenuItem>

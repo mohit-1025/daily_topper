@@ -1,23 +1,9 @@
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { motion } from 'framer-motion'
-import {
-  ArrowLeft,
-  ArrowRight,
-  CalendarCheck2,
-  Check,
-  Eye,
-  EyeOff,
-  Flame,
-  Lock,
-  Mail,
-  ShieldCheck,
-  Sparkles,
-  User,
-} from 'lucide-react'
+import { ArrowLeft, Check, Eye, EyeOff, Lock, Mail, User } from 'lucide-react'
 import { Logo } from '@/components/shared/brand'
-import { ThemeToggle } from '@/components/shared/theme-toggle'
+import { CalendarDoodle, NoteDoodle, PencilDoodle, TickDoodle } from '@/components/shared/doodles'
 import { Button } from '@/components/ui/button'
 import { Input, Label } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -47,11 +33,31 @@ function Field({
       <div className="relative">
         <Icon className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         {children}
-        {error && <p className="mt-1 text-xs font-medium text-destructive">{error}</p>}
+        {error && (
+          <p className="mt-1 border-l-2 border-[var(--margin-line)] pl-2 text-sm font-medium text-destructive">{error}</p>
+        )}
       </div>
     </div>
   )
 }
+
+const notes = [
+  {
+    icon: CalendarDoodle,
+    title: 'A plan that rebuilds itself',
+    desc: 'Skip a slot or change a rating. Tomorrow adapts.',
+  },
+  {
+    icon: PencilDoodle,
+    title: 'Private by default',
+    desc: 'Guest mode keeps everything on this device.',
+  },
+  {
+    icon: TickDoodle,
+    title: 'Progress you can see',
+    desc: 'Every slot ends with a short quiz. Streaks grow.',
+  },
+]
 
 export function AuthPage() {
   const { t } = useTranslation()
@@ -101,7 +107,7 @@ export function AuthPage() {
           : await signUp(form.name.trim(), form.email.trim(), form.password)
       const state = useAppStore.getState()
       pushToast(
-        mode === 'login' ? 'Welcome back!' : 'Account created',
+        mode === 'login' ? 'Welcome back!' : 'Notebook opened',
         mode === 'login' ? `Good to see you, ${session.name.split(' ')[0]}.` : 'Your study space is ready.',
         'success',
       )
@@ -125,75 +131,53 @@ export function AuthPage() {
   }
 
   return (
-    <div className="relative min-h-dvh overflow-hidden bg-background">
-      <div className="pointer-events-none absolute inset-0 -z-10 mesh-bg" aria-hidden />
-      <header className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-5 sm:px-8">
+    <div className="ruled-page relative min-h-dvh bg-background">
+      <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-5 sm:px-8">
         <Logo />
-        <div className="flex items-center gap-1">
-          <ThemeToggle />
-          <Button variant="ghost" size="sm" asChild>
-            <Link to="/">
-              <ArrowLeft className="size-4" /> Home
-            </Link>
-          </Button>
-        </div>
+        <Button variant="ghost" size="sm" asChild>
+          <Link to="/">
+            <ArrowLeft className="size-4" /> Home
+          </Link>
+        </Button>
       </header>
 
-      <main className="mx-auto grid w-full max-w-6xl gap-8 px-4 pb-16 pt-2 sm:px-8 lg:grid-cols-[1fr_460px] lg:items-center lg:gap-16 lg:pt-10">
-        <motion.section
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="hidden lg:block"
-        >
-          <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary-soft px-3.5 py-1.5 text-xs font-semibold text-primary">
-            <Sparkles className="size-3.5" /> {t('landing.badge')}
-          </span>
-          <h1 className="mt-5 font-display text-4xl font-extrabold leading-[1.08] tracking-tight xl:text-5xl">
+      <main className="mx-auto grid w-full max-w-6xl gap-10 px-4 pb-16 pt-4 sm:px-8 lg:grid-cols-[1fr_440px] lg:items-start lg:gap-16 lg:pt-10">
+        <section className="hidden lg:block">
+          <p className="text-base text-muted-foreground">{t('landing.badge')}</p>
+          <h1 className="mt-3 font-display text-5xl font-bold leading-[1.12] tracking-tight xl:text-6xl">
             {t('landing.heroTitle')}
             <br />
-            <span className="gradient-text">{t('landing.heroAccent')}</span>
+            <span className="mark">{t('landing.heroAccent')}</span>
           </h1>
-          <p className="mt-5 max-w-lg text-base leading-relaxed text-muted-foreground">
-            {t('landing.heroSubtitle')}
+          <p className="mt-5 max-w-[58ch] text-lg leading-8 text-muted-foreground">{t('landing.heroSubtitle')}</p>
+
+          <ul className="mt-9 max-w-[56ch] border-t-2 border-dashed border-border">
+            {notes.map((item) => {
+              const Icon = item.icon
+              return (
+                <li key={item.title} className="flex items-start gap-4 border-b-2 border-dashed border-border py-4">
+                  <Icon className="mt-1 size-6 shrink-0 text-foreground" />
+                  <div>
+                    <p className="font-semibold">{item.title}</p>
+                    <p className="text-base leading-8 text-muted-foreground">{item.desc}</p>
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+
+          <p className="mt-8 flex max-w-[54ch] items-start gap-2 text-base leading-8 text-muted-foreground">
+            <NoteDoodle className="mt-1.5 size-5 shrink-0 text-[var(--margin-line)]" />
+            Your exam dates and syllabus shape every plan. Nothing is dropped — it moves.
           </p>
+        </section>
 
-          <div className="mt-8 space-y-3">
-            {[
-              { icon: CalendarCheck2, title: 'A plan that rebuilds itself', desc: 'Skip a slot, miss one, or change a rating — tomorrow adapts.' },
-              { icon: ShieldCheck, title: 'Private by default', desc: 'Guest mode keeps everything on this device. No setup needed.' },
-              { icon: Flame, title: 'Momentum you can feel', desc: 'Quizzes end every slot, topics get covered, streaks grow.' },
-            ].map((item, index) => (
-              <motion.div
-                key={item.title}
-                initial={{ opacity: 0, x: -12 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.15 + index * 0.08 }}
-                className="flex items-start gap-3 rounded-2xl border border-border/70 bg-card/60 p-4 backdrop-blur"
-              >
-                <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary">
-                  <item.icon className="size-4" />
-                </span>
-                <div>
-                  <p className="text-sm font-semibold">{item.title}</p>
-                  <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{item.desc}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.section>
-
-        <motion.section
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45 }}
-          className="mx-auto w-full max-w-md rounded-3xl border border-border bg-card/95 p-5 shadow-lift backdrop-blur sm:p-7 lg:mx-0"
-        >
+        <section className="paper-card tape mx-auto w-full max-w-md p-5 sm:p-7 lg:mx-0">
           <div className="mb-5">
-            <h2 className="font-display text-2xl font-extrabold tracking-tight">
+            <h2 className="font-display text-3xl font-bold tracking-tight">
               {mode === 'login' ? t('auth.welcomeBack') : t('auth.signupTab')}
             </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mt-1 text-base text-muted-foreground">
               {mode === 'login' ? t('auth.loginSubtitle') : t('auth.signupSubtitle')}
             </p>
           </div>
@@ -212,7 +196,7 @@ export function AuthPage() {
             </TabsList>
 
             <TabsContent value="login" forceMount className={cn(mode !== 'login' && 'hidden')}>
-              <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+              <form onSubmit={handleSubmit} className="space-y-4 pt-1" noValidate>
                 <Field id="login-email" label={t('common.email')} icon={Mail} error={fieldErrors.email}>
                   <Input
                     id="login-email"
@@ -239,22 +223,26 @@ export function AuthPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword((value) => !value)}
-                    className="absolute right-2 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
+                    className="absolute right-2 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-[4px_9px_5px_8px] text-muted-foreground hover:bg-muted hover:text-foreground"
                     aria-label={showPassword ? t('auth.hide') : t('auth.show')}
                   >
                     {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                   </button>
                 </Field>
-                {error && <p className="rounded-lg bg-destructive/10 px-3 py-2 text-xs font-medium text-destructive">{error}</p>}
+                {error && (
+                  <p className="border-l-2 border-[var(--margin-line)] bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive">
+                    {error}
+                  </p>
+                )}
                 <Button type="submit" className="w-full" loading={loading === 'form'}>
                   {loading === 'form' ? t('auth.signingIn') : t('auth.loginTab')}
-                  {loading !== 'form' && <ArrowRight className="size-4" />}
+                  {loading !== 'form' && <ArrowLeft className="size-4 rotate-180" />}
                 </Button>
               </form>
             </TabsContent>
 
             <TabsContent value="signup" forceMount className={cn(mode !== 'signup' && 'hidden')}>
-              <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+              <form onSubmit={handleSubmit} className="space-y-4 pt-1" noValidate>
                 <Field id="signup-name" label={t('common.name')} icon={User} error={fieldErrors.name}>
                   <Input
                     id="signup-name"
@@ -292,7 +280,7 @@ export function AuthPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword((value) => !value)}
-                    className="absolute right-2 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
+                    className="absolute right-2 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-[4px_9px_5px_8px] text-muted-foreground hover:bg-muted hover:text-foreground"
                     aria-label={showPassword ? t('auth.hide') : t('auth.show')}
                   >
                     {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -310,35 +298,34 @@ export function AuthPage() {
                     aria-invalid={Boolean(fieldErrors.confirm)}
                   />
                 </Field>
-                {error && <p className="rounded-lg bg-destructive/10 px-3 py-2 text-xs font-medium text-destructive">{error}</p>}
+                {error && (
+                  <p className="border-l-2 border-[var(--margin-line)] bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive">
+                    {error}
+                  </p>
+                )}
                 <Button type="submit" className="w-full" loading={loading === 'form'}>
                   {loading === 'form' ? t('auth.creating') : t('auth.signupTab')}
-                  {loading !== 'form' && <ArrowRight className="size-4" />}
+                  {loading !== 'form' && <ArrowLeft className="size-4 rotate-180" />}
                 </Button>
               </form>
             </TabsContent>
           </Tabs>
 
           <div className="my-5 flex items-center gap-3">
-            <span className="h-px flex-1 bg-border" />
-            <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">{t('auth.or')}</span>
-            <span className="h-px flex-1 bg-border" />
+            <span className="h-0.5 flex-1 bg-border" />
+            <span className="text-base text-muted-foreground">{t('auth.or')}</span>
+            <span className="h-0.5 flex-1 bg-border" />
           </div>
 
-          <Button
-            variant="outline"
-            className="w-full border-primary/30 bg-primary-soft text-primary hover:bg-primary/15"
-            onClick={handleGuest}
-            loading={loading === 'guest'}
-          >
-            {loading !== 'guest' && <Sparkles className="size-4" />}
+          <Button variant="outline" className="w-full" onClick={handleGuest} loading={loading === 'guest'}>
+            {loading !== 'guest' && <PencilDoodle className="size-5" />}
             {t('auth.guestButton')}
           </Button>
-          <p className="mt-2 text-center text-[11px] leading-relaxed text-muted-foreground">{t('auth.guestHint')}</p>
-          <p className="mt-4 rounded-lg bg-muted/60 px-3 py-2 text-center text-[11px] text-muted-foreground">
-            <ShieldCheck className="mr-1 inline size-3.5" /> {t('auth.settingsNote')}
+          <p className="mt-2 text-center text-sm leading-6 text-muted-foreground">{t('auth.guestHint')}</p>
+          <p className="mt-4 border-t-2 border-dashed border-border pt-3 text-center text-sm text-muted-foreground">
+            {t('auth.settingsNote')}
           </p>
-        </motion.section>
+        </section>
       </main>
     </div>
   )

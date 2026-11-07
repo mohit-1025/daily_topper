@@ -28,11 +28,11 @@ export function Sidebar({
   return (
     <aside
       className={cn(
-        'fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-border bg-sidebar/95 backdrop-blur-xl transition-[width] duration-300 md:flex',
+        'fixed inset-y-0 left-0 z-40 hidden flex-col border-r-2 border-foreground/70 bg-sidebar transition-[width] duration-300 md:flex',
         collapsed ? 'w-[84px]' : 'w-[264px]',
       )}
     >
-      <div className={cn('flex h-[72px] items-center border-b border-border px-4', collapsed ? 'justify-center' : 'justify-between')}>
+      <div className={cn('flex h-[72px] items-center border-b-2 border-foreground/40 px-4', collapsed ? 'justify-center' : 'justify-between')}>
         <Logo to="/dashboard" compact={collapsed} />
         {!collapsed && (
           <button
@@ -64,11 +64,11 @@ export function Sidebar({
               title={collapsed ? t(`nav.${item.key}`) : undefined}
               className={({ isActive }) =>
                 cn(
-                  'group flex min-h-[46px] items-center gap-3 rounded-xl px-3 text-sm font-medium transition-all',
+                  'group flex min-h-[46px] items-center gap-3 rounded-[4px_12px_6px_10px] border-2 px-3 text-base font-semibold transition-colors',
                   collapsed && 'justify-center px-0',
                   isActive
-                    ? 'bg-primary text-primary-foreground shadow-soft'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                    ? 'border-foreground bg-accent/70 text-foreground shadow-[2px_2px_0_hsl(var(--foreground)/0.25)]'
+                    : 'border-transparent text-muted-foreground hover:border-foreground/30 hover:bg-muted hover:text-foreground',
                 )
               }
             >
@@ -77,10 +77,10 @@ export function Sidebar({
                 <span className="flex-1 truncate">{t(`nav.${item.key}`)}</span>
               )}
               {!collapsed && item.key === 'exam' && examMode.active && (
-                <span className="size-2 rounded-full bg-accent shadow-[0_0_0_3px_hsl(var(--accent)/0.18)]" />
+                <span className="size-2 rounded-full bg-destructive shadow-[0_0_0_3px_hsl(var(--destructive)/0.16)]" />
               )}
               {collapsed && item.key === 'exam' && examMode.active && (
-                <span className="absolute right-2 top-2 size-1.5 rounded-full bg-accent" />
+                <span className="absolute right-2 top-2 size-1.5 rounded-full bg-destructive" />
               )}
             </NavLink>
           )
@@ -88,16 +88,16 @@ export function Sidebar({
       </nav>
 
       {!collapsed && (
-        <div className="mx-3 mb-3 rounded-2xl border border-accent/20 bg-gradient-to-br from-amber-400/10 to-orange-500/5 p-3.5">
+        <div className="mx-3 mb-3 rounded-[5px_13px_7px_10px] border-2 border-foreground/70 bg-secondary p-3.5">
           <div className="flex items-center gap-2">
-            <span className="flex size-8 items-center justify-center rounded-lg bg-accent/15 text-accent">
-              <Flame className="size-4 fill-accent" />
+            <span className="flex size-8 items-center justify-center rounded-[3px_8px_4px_7px] border-2 border-foreground text-foreground">
+              <Flame className="size-4" strokeWidth={2.2} />
             </span>
             <div>
-              <p className="text-sm font-bold">
+              <p className="text-base font-bold">
                 {streak.current} {t('streak.label')}
               </p>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 {t('streak.best')}: {streak.best}
               </p>
             </div>

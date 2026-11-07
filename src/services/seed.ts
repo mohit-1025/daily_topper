@@ -136,7 +136,7 @@ function makeGeneratedContent(): GeneratedContent[] {
       id: 'gen_phy_notes',
       subjectId: 'sub_phy',
       type: 'notes',
-      title: 'Laws of Motion — AI study notes',
+      title: 'Laws of Motion — study notes',
       topicIds: ['t_phy_1'],
       sourceUploadIds: ['up_laws_note'],
       createdAt: subDays(new Date(), 2).toISOString(),
@@ -489,7 +489,6 @@ export function createSeedData(now = new Date()): AppData {
   const history = makeHistory(topics, attempts, now)
   const settings: AppData['settings'] = {
     language: 'en',
-    theme: 'system',
     studyHours: 4,
     preferredStudyTime: 'evening',
     slotLength: 45,
@@ -576,33 +575,29 @@ export function createSeedData(now = new Date()): AppData {
 
 export function seedAssetBlobs(): { id: string; blob: Blob }[] {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="620" viewBox="0 0 900 620">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#ecfdf5"/><stop offset="1" stop-color="#dbeafe"/>
-    </linearGradient>
-    <linearGradient id="leaf" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#34d399"/><stop offset="1" stop-color="#059669"/>
-    </linearGradient>
-  </defs>
-  <rect width="900" height="620" fill="url(#bg)"/>
-  <text x="450" y="58" font-family="Arial, sans-serif" font-size="30" font-weight="700" fill="#065f46" text-anchor="middle">Photosynthesis — labelled diagram</text>
-  <text x="450" y="88" font-family="Arial, sans-serif" font-size="17" fill="#047857" text-anchor="middle">Light energy + 6CO₂ + 6H₂O → C₆H₁₂O₆ + 6O₂</text>
-  <path d="M450 470 C260 440 190 300 250 150 C420 170 540 280 450 470Z" fill="url(#leaf)" opacity="0.95"/>
-  <path d="M450 470 C640 440 710 300 650 150 C480 170 360 280 450 470Z" fill="#10b981" opacity="0.9"/>
-  <path d="M450 470 L450 180" stroke="#065f46" stroke-width="5" opacity="0.7"/>
-  <path d="M450 380 L350 300 M450 320 L360 240 M450 260 L390 200 M450 380 L550 300 M450 320 L540 240 M450 260 L510 200" stroke="#065f46" stroke-width="3" opacity="0.5"/>
-  <rect x="620" y="430" width="210" height="110" rx="16" fill="#ffffff" opacity="0.9"/>
-  <text x="640" y="462" font-family="Arial, sans-serif" font-size="15" fill="#065f46">☀ Light reactions — thylakoid</text>
-  <text x="640" y="488" font-family="Arial, sans-serif" font-size="15" fill="#065f46">💧 Water split → O₂ released</text>
-  <text x="640" y="514" font-family="Arial, sans-serif" font-size="15" fill="#065f46">⚡ ATP + NADPH produced</text>
-  <rect x="70" y="430" width="210" height="110" rx="16" fill="#ffffff" opacity="0.9"/>
-  <text x="90" y="462" font-family="Arial, sans-serif" font-size="15" fill="#065f46">🌿 Calvin cycle — stroma</text>
-  <text x="90" y="488" font-family="Arial, sans-serif" font-size="15" fill="#065f46">CO₂ fixed using ATP + NADPH</text>
-  <text x="90" y="514" font-family="Arial, sans-serif" font-size="15" fill="#065f46">Glucose (C₆H₁₂O₆) formed</text>
-  <line x1="280" y1="470" x2="260" y2="360" stroke="#0f766e" stroke-width="2" stroke-dasharray="5 4"/>
-  <line x1="620" y1="470" x2="640" y2="360" stroke="#0f766e" stroke-width="2" stroke-dasharray="5 4"/>
-  <circle cx="450" cy="180" r="8" fill="#f59e0b"/>
-  <text x="450" y="145" font-family="Arial, sans-serif" font-size="15" fill="#b45309" text-anchor="middle">Chlorophyll absorbs red &amp; blue light</text>
+  <rect width="900" height="620" fill="#fbfaf4"/>
+  <g stroke="#b9d3e6" stroke-width="1">
+    <path d="M0 40H900M0 80H900M0 120H900M0 160H900M0 200H900M0 240H900M0 280H900M0 320H900M0 360H900M0 400H900M0 440H900M0 480H900M0 520H900M0 560H900M0 600H900"/>
+  </g>
+  <path d="M96 0V620" stroke="#e8928f" stroke-width="2"/>
+  <text x="450" y="58" font-family="'Caveat Brush', 'Segoe Print', cursive" font-size="34" fill="#23325e" text-anchor="middle">Photosynthesis — labelled diagram</text>
+  <text x="450" y="88" font-family="'Patrick Hand', 'Segoe Print', cursive" font-size="18" fill="#23325e" text-anchor="middle">Light energy + 6CO₂ + 6H₂O → C₆H₁₂O₆ + 6O₂</text>
+  <path d="M450 470 C260 440 190 300 250 150 C420 170 540 280 450 470Z" fill="#b9d3e6" stroke="#23325e" stroke-width="3"/>
+  <path d="M450 470 C640 440 710 300 650 150 C480 170 360 280 450 470Z" fill="#f3d9a4" stroke="#23325e" stroke-width="3"/>
+  <path d="M450 470 L450 180" stroke="#23325e" stroke-width="5" opacity="0.75"/>
+  <path d="M450 380 L350 300 M450 320 L360 240 M450 260 L390 200 M450 380 L550 300 M450 320 L540 240 M450 260 L510 200" stroke="#23325e" stroke-width="3" opacity="0.45"/>
+  <rect x="620" y="430" width="210" height="110" fill="#fbfaf4" stroke="#23325e" stroke-width="2"/>
+  <text x="640" y="462" font-family="'Patrick Hand', 'Segoe Print', cursive" font-size="16" fill="#23325e">Light reactions — thylakoid</text>
+  <text x="640" y="488" font-family="'Patrick Hand', 'Segoe Print', cursive" font-size="16" fill="#23325e">Water split → O₂ released</text>
+  <text x="640" y="514" font-family="'Patrick Hand', 'Segoe Print', cursive" font-size="16" fill="#23325e">ATP + NADPH produced</text>
+  <rect x="70" y="430" width="210" height="110" fill="#fbfaf4" stroke="#23325e" stroke-width="2"/>
+  <text x="90" y="462" font-family="'Patrick Hand', 'Segoe Print', cursive" font-size="16" fill="#23325e">Calvin cycle — stroma</text>
+  <text x="90" y="488" font-family="'Patrick Hand', 'Segoe Print', cursive" font-size="16" fill="#23325e">CO₂ fixed using ATP + NADPH</text>
+  <text x="90" y="514" font-family="'Patrick Hand', 'Segoe Print', cursive" font-size="16" fill="#23325e">Glucose (C₆H₁₂O₆) formed</text>
+  <line x1="280" y1="470" x2="260" y2="360" stroke="#23325e" stroke-width="2" stroke-dasharray="5 4"/>
+  <line x1="620" y1="470" x2="640" y2="360" stroke="#23325e" stroke-width="2" stroke-dasharray="5 4"/>
+  <circle cx="450" cy="180" r="8" fill="#ffe45c" stroke="#23325e" stroke-width="2"/>
+  <text x="450" y="145" font-family="'Patrick Hand', 'Segoe Print', cursive" font-size="16" fill="#23325e" text-anchor="middle">Chlorophyll absorbs red &amp; blue light</text>
 </svg>`
   return [{ id: 'up_photosynthesis_svg', blob: new Blob([svg], { type: 'image/svg+xml' }) }]
 }

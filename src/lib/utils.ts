@@ -120,7 +120,7 @@ export function formatBytes(bytes: number) {
 }
 
 export function subjectColor(index: number) {
-  const palette = ['#6366f1', '#0ea5e9', '#f59e0b', '#10b981', '#ec4899', '#8b5cf6', '#ef4444', '#14b8a6']
+  const palette = ['#23325e', '#e8928f', '#b9d3e6', '#f3d9a4', '#ffe45c', '#23325e', '#e8928f', '#b9d3e6']
   return palette[index % palette.length]
 }
 

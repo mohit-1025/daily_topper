@@ -12,7 +12,6 @@ import type {
   RevisionSheet,
   Settings,
   Subject,
-  ThemeMode,
   Toast,
   ToastKind,
   Topic,
@@ -32,7 +31,6 @@ const GUEST_DATA_KEY = 'dt-data-guest'
 
 const DEFAULT_SETTINGS: Settings = {
   language: 'en',
-  theme: 'system',
   studyHours: 4,
   preferredStudyTime: 'evening',
   slotLength: 45,
@@ -185,6 +183,7 @@ export interface AppStore extends AppData {
   finishTimer: () => void
   stopTimer: () => void
   skipSlot: (slotId: string, reason?: string) => void
+  skipDay: (date: string) => void
   submitAttempt: (attempt: QuizAttempt, slotId?: string) => void
   processMissedSlots: (silent?: boolean) => void
   getRevisionSheet: (subjectId: string, topicId: string) => Promise<RevisionSheet>
@@ -194,7 +193,6 @@ export interface AppStore extends AppData {
   pushToast: (title: string, description?: string, kind?: ToastKind) => void
   dismissToast: (id: string) => void
   setLanguage: (language: Language) => void
-  setTheme: (theme: ThemeMode) => void
 }
 
 export const useAppStore = create<AppStore>((set, get) => ({
@@ -349,7 +347,6 @@ export const useAppStore = create<AppStore>((set, get) => ({
   updateSettings: (partial) => {
     const previous = get().settings
     set({ settings: { ...previous, ...partial } })
-    if (partial.theme) localStorage.setItem('dt-theme', partial.theme)
     const replanKeys: (keyof Settings)[] = [
       'studyHours',
       'preferredStudyTime',
@@ -550,7 +547,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
       createdAt: new Date().toISOString(),
     }
     set({ generated: [item, ...get().generated] })
-    get().pushToast('AI content ready', `${result.title} was added to ${subject.name}.`, 'success')
+    get().pushToast('Notes ready', `${result.title} was added to ${subject.name}.`, 'success')
     return item
   },
 
@@ -726,8 +723,23 @@ export const useAppStore = create<AppStore>((set, get) => ({
     get().pushToast('Slot skipped', 'Its topics were re-queued into your upcoming slots.', 'warning')
   },
 
-  submitAttempt: (attempt, slotId) => {
+  skipDay: (date) => {
     const state = get()
+    const openSlots = state.slots.filter((slot) => slot.date === date && slot.status === 'scheduled')
+    if (!openSlots.length) {
+      get().pushToast('Nothing to skip', 'That day has no unfinished slots.', 'info')
+      return
+    }
+    const ids = new Set(openSlots.map((slot) => slot.id))
+    set({
+      slots: state.slots.map((slot) => (ids.has(slot.id) ? { ...slot, status: 'missed' } : slot)),
+      timer: state.timer && ids.has(state.timer.slotId) ? null : state.timer,
+    })
+    get().replan()
+    get().pushToast('Plan updated. Nothing dropped.', 'The missed topics moved into your next open slots.', 'success')
+  },
+
+  submitAttempt: (attempt, slotId) => {    const state = get()
     const coveredIds = attempt.questions
       .filter((question) => attempt.answers[question.id] !== undefined)
       .map((question) => question.topicId)
@@ -941,11 +953,6 @@ export const useAppStore = create<AppStore>((set, get) => ({
   setLanguage: (language) => {
     set({ settings: { ...get().settings, language } })
     document.documentElement.lang = language
-  },
-
-  setTheme: (theme) => {
-    set({ settings: { ...get().settings, theme } })
-    localStorage.setItem('dt-theme', theme)
   },
 }))
 

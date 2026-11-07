@@ -28,10 +28,8 @@ import {
   LineChart as LineChartIcon,
   Loader2,
   Printer,
-  Sparkles,
   Target,
   Trophy,
-  Zap,
 } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
 import { Badge } from '@/components/ui/badge'
@@ -39,27 +37,28 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { EmptyState, Progress, Skeleton } from '@/components/ui/misc'
+import { PencilDoodle, TickDoodle } from '@/components/shared/doodles'
 import { useAppStore } from '@/store/useAppStore'
 import { computeStreak, computeTopicPerformance, studyMinutes, subjectAccuracy } from '@/services/plannerService'
 import { cn, formatDuration, longDate, percent, prettyDate, shortWeekday, todayISO } from '@/lib/utils'
 import type { RevisionSheet, Subject, Topic } from '@/types'
 
 const CHART_COLORS = {
-  primary: '#6366f1',
-  success: '#10b981',
-  warning: '#f59e0b',
-  destructive: '#ef4444',
-  info: '#3b82f6',
+  ink: '#23325e',
+  rule: '#b9d3e6',
+  margin: '#e8928f',
+  highlighter: '#ffe45c',
+  tape: '#f3d9a4',
 }
 
-const axisTick = { fontSize: 10, fill: 'hsl(var(--muted-foreground))' }
+const axisTick = { fontSize: 11, fill: 'hsl(var(--muted-foreground))' }
 const tooltipStyle = {
-  borderRadius: 12,
-  border: '1px solid hsl(var(--border))',
-  background: 'hsl(var(--card))',
-  fontSize: 12,
+  borderRadius: 4,
+  border: '2px solid hsl(var(--foreground))',
+  background: '#fbfaf4',
+  fontSize: 13,
   color: 'hsl(var(--foreground))',
-  boxShadow: '0 12px 32px -12px rgb(15 23 42 / 0.25)',
+  boxShadow: '3px 3px 0 hsl(var(--foreground) / 0.2)',
 }
 
 function escapeHtml(value: string) {
@@ -72,44 +71,44 @@ function escapeHtml(value: string) {
 function RevisionSheetBody({ sheet }: { sheet: RevisionSheet }) {
   const { t } = useTranslation()
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <section>
-        <p className="mb-1.5 text-xs font-bold uppercase tracking-wider text-primary">{t('progress.keyPoints')}</p>
+        <p className="mb-1.5 font-display text-xl font-bold">{t('progress.keyPoints')}</p>
         <ul className="space-y-1.5">
           {sheet.keyPoints.map((point, index) => (
-            <li key={index} className="flex gap-2 text-sm leading-relaxed">
-              <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-success" /> {point}
+            <li key={index} className="flex gap-2 leading-8">
+              <TickDoodle className="mt-2 size-4 shrink-0" /> {point}
             </li>
           ))}
         </ul>
       </section>
       <section>
-        <p className="mb-1.5 text-xs font-bold uppercase tracking-wider text-primary">{t('progress.definitions')}</p>
-        <div className="grid gap-1.5 sm:grid-cols-2">
+        <p className="mb-1.5 font-display text-xl font-bold">{t('progress.definitions')}</p>
+        <div className="grid gap-2 sm:grid-cols-2">
           {sheet.definitions.map((entry, index) => (
-            <div key={index} className="rounded-lg bg-muted/40 p-2.5">
-              <p className="text-xs font-bold">{entry.term}</p>
-              <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">{entry.meaning}</p>
+            <div key={index} className="border-l-2 border-[var(--margin-line)] pl-2">
+              <p className="font-semibold">{entry.term}</p>
+              <p className="mt-0.5 leading-8 text-muted-foreground">{entry.meaning}</p>
             </div>
           ))}
         </div>
       </section>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2">
         <section>
-          <p className="mb-1.5 text-xs font-bold uppercase tracking-wider text-primary">{t('progress.mnemonics')}</p>
+          <p className="mb-1.5 font-display text-xl font-bold">{t('progress.mnemonics')}</p>
           <ul className="space-y-1.5">
             {sheet.mnemonics.map((mnemonic, index) => (
-              <li key={index} className="rounded-lg bg-warning/10 px-2.5 py-2 text-[11px] leading-relaxed text-warning">
+              <li key={index} className="border-b-2 border-dashed border-border py-1 leading-8">
                 {mnemonic}
               </li>
             ))}
           </ul>
         </section>
         <section>
-          <p className="mb-1.5 text-xs font-bold uppercase tracking-wider text-primary">{t('progress.mistakes')}</p>
+          <p className="mb-1.5 font-display text-xl font-bold">{t('progress.mistakes')}</p>
           <ul className="space-y-1.5">
             {sheet.commonMistakes.map((mistake, index) => (
-              <li key={index} className="rounded-lg bg-destructive/5 px-2.5 py-2 text-[11px] leading-relaxed text-muted-foreground">
+              <li key={index} className="border-l-2 border-[var(--margin-line)] pl-2 leading-8 text-muted-foreground">
                 {mistake}
               </li>
             ))}
@@ -130,29 +129,26 @@ function SubjectConfidence({
   performance: ReturnType<typeof computeTopicPerformance>
 }) {
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {subjects.map((subject) => {
         const actual = subjectAccuracy(subject.id, topics, performance)
         const expected = subject.selfRating * 20
         return (
           <div key={subject.id}>
-            <div className="flex items-center justify-between gap-2 text-[11px]">
+            <div className="flex items-baseline justify-between gap-2">
               <span className="truncate font-semibold">{subject.name}</span>
-              <span className="shrink-0 tabular-nums text-muted-foreground">
+              <span className="shrink-0 text-sm tabular-nums text-muted-foreground">
                 {expected}% vs {actual === null ? '—' : `${actual}%`}
               </span>
             </div>
             <div className="mt-1 space-y-1">
-              <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-                <div className="h-full rounded-full bg-muted-foreground/40" style={{ width: `${expected}%` }} />
+              <div className="h-2.5 border-2 border-foreground">
+                <div className="h-full bg-secondary" style={{ width: `${expected}%` }} />
               </div>
-              <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+              <div className="h-2.5 border-2 border-foreground">
                 <div
-                  className="h-full rounded-full"
-                  style={{
-                    width: `${actual ?? 0}%`,
-                    backgroundColor: actual === null ? 'transparent' : subject.color,
-                  }}
+                  className="progress-striped h-full"
+                  style={{ width: `${actual ?? 0}%`, opacity: actual === null ? 0 : 1 }}
                 />
               </div>
             </div>
@@ -160,13 +156,17 @@ function SubjectConfidence({
         )
       })}
       {subjects.length === 0 && (
-        <p className="rounded-xl bg-muted/40 px-3 py-6 text-center text-xs text-muted-foreground">
+        <p className="border-y-2 border-dashed border-border py-6 text-center text-base text-muted-foreground">
           Add subjects to compare confidence with quiz accuracy.
         </p>
       )}
-      <div className="flex items-center gap-3 pt-1 text-[10px] text-muted-foreground">
-        <span className="flex items-center gap-1"><span className="h-1.5 w-4 rounded-full bg-muted-foreground/40" /> Self-rating</span>
-        <span className="flex items-center gap-1"><span className="h-1.5 w-4 rounded-full bg-primary" /> Quiz accuracy</span>
+      <div className="flex items-center gap-3 pt-1 text-sm text-muted-foreground">
+        <span className="flex items-center gap-1">
+          <span className="size-2.5 border border-foreground bg-secondary" /> Self-rating
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="size-2.5 border border-foreground bg-accent" /> Quiz accuracy
+        </span>
       </div>
     </div>
   )
@@ -216,16 +216,15 @@ export function ProgressPage() {
   const missedCount = pastSlots.filter((slot) => slot.status === 'missed').length
   const completionRate = percent(doneCount, pastSlots.length)
   const pieData = [
-    { name: 'Done', value: doneCount, color: CHART_COLORS.success },
-    { name: 'Skipped', value: skippedCount, color: CHART_COLORS.warning },
-    { name: 'Missed', value: missedCount, color: CHART_COLORS.destructive },
+    { name: 'Done', value: doneCount, color: CHART_COLORS.highlighter },
+    { name: 'Skipped', value: skippedCount, color: CHART_COLORS.tape },
+    { name: 'Missed', value: missedCount, color: CHART_COLORS.margin },
   ]
 
   const subjectMinutes = subjects
     .map((subject) => ({
       name: subject.name,
       minutes: studyMinutes(doneSlots.filter((slot) => slot.subjectId === subject.id)),
-      color: subject.color,
     }))
     .filter((entry) => entry.minutes > 0)
     .sort((a, b) => b.minutes - a.minutes)
@@ -341,16 +340,26 @@ export function ProgressPage() {
 <html><head><meta charset="utf-8"><title>${escapeHtml(sheet.title)}</title>
 <style>
   * { box-sizing: border-box; }
-  body { font-family: 'Inter', system-ui, -apple-system, sans-serif; color: #0f172a; margin: 36px; line-height: 1.55; }
-  h1 { font-size: 22px; margin: 0 0 4px; }
-  .meta { color: #64748b; font-size: 12px; margin-bottom: 20px; }
-  h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #4f46e5; margin: 20px 0 6px; }
-  ul { margin: 0; padding-left: 20px; font-size: 13px; }
-  li { margin-bottom: 5px; }
-  .defs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; }
-  .def { background: #f8fafc; border-radius: 8px; padding: 8px 10px; }
-  .def b { display: block; margin-bottom: 2px; }
-  @media print { body { margin: 18mm; } }
+  body {
+    font-family: 'Patrick Hand', 'Segoe Print', 'Comic Sans MS', cursive;
+    color: #23325e;
+    background: #fbfaf4;
+    margin: 0;
+    padding: 36px;
+    line-height: 32px;
+    font-size: 17px;
+    background-image: repeating-linear-gradient(to bottom, transparent 0 31px, rgba(185,211,230,.55) 31px 32px);
+  }
+  h1, h2 { font-family: 'Caveat Brush', 'Segoe Print', cursive; font-weight: 400; }
+  h1 { font-size: 34px; margin: 0 0 4px; }
+  .meta { color: #4a5578; font-size: 15px; margin-bottom: 24px; }
+  h2 { font-size: 24px; margin: 24px 0 6px; border-bottom: 2px dashed #23325e; padding-bottom: 2px; }
+  ul { margin: 0; padding-left: 22px; }
+  li { margin-bottom: 4px; }
+  .defs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .def { border-left: 3px solid #e8928f; padding: 2px 10px; }
+  .def b { display: block; }
+  @media print { body { padding: 16mm; } }
 </style></head>
 <body>
   <h1>${escapeHtml(sheet.title)}</h1>
@@ -372,7 +381,7 @@ export function ProgressPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <PageHeader
         eyebrow={longDate(new Date(), settings.language)}
         title={t('progress.title')}
@@ -380,69 +389,61 @@ export function ProgressPage() {
         actions={
           <Button variant="outline" size="sm" asChild>
             <Link to="/quizzes">
-              <LineChartIcon className="size-3.5" /> Take a quiz
+              <LineChartIcon className="size-4" /> Take a quiz
             </Link>
           </Button>
         }
       />
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 border-y-2 border-dashed border-border lg:grid-cols-4 lg:divide-x-2 lg:divide-dashed lg:divide-border">
         {[
-          { label: t('progress.studyHours'), value: formatDuration(totalMinutes), icon: Zap, tone: 'text-primary' },
-          { label: t('progress.avgScore'), value: `${avgScore}%`, icon: Target, tone: 'text-info' },
-          { label: t('progress.doneSlots'), value: doneSlots.length, icon: CheckCircle2, tone: 'text-success' },
-          { label: t('progress.dayStreak'), value: streak.current, icon: Flame, tone: 'text-warning' },
+          { label: t('progress.studyHours'), value: formatDuration(totalMinutes) },
+          { label: t('progress.avgScore'), value: `${avgScore}%` },
+          { label: t('progress.doneSlots'), value: String(doneSlots.length) },
+          { label: t('progress.dayStreak'), value: String(streak.current) },
         ].map((stat) => (
-          <Card key={stat.label}>
-            <CardContent className="p-4">
-              <stat.icon className={cn('mb-1 size-4', stat.tone)} />
-              <p className="font-display text-2xl font-extrabold">{stat.value}</p>
-              <p className="text-[11px] font-medium text-muted-foreground">{stat.label}</p>
-            </CardContent>
-          </Card>
+          <div key={stat.label} className="px-1 py-3 lg:px-4">
+            <p className="font-display text-4xl font-bold leading-none">{stat.value}</p>
+            <p className="text-sm text-muted-foreground">{stat.label}</p>
+          </div>
         ))}
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader className="pb-2">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <CardTitle className="text-base">{t('progress.studyTime')}</CardTitle>
+                <CardTitle>{t('progress.studyTime')}</CardTitle>
                 <CardDescription>{t('progress.studyTimeDesc')}</CardDescription>
               </div>
               <div className="text-right">
-                <p className="font-display text-lg font-extrabold">{formatDuration(totalMinutes)}</p>
-                <p className="text-[10px] text-muted-foreground">{trendDays} active days / 14</p>
+                <p className="font-display text-3xl font-bold leading-none">{formatDuration(totalMinutes)}</p>
+                <p className="text-sm text-muted-foreground">{trendDays} active days / 14</p>
               </div>
             </div>
           </CardHeader>
           <CardContent>
             <div className="h-[220px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={trend} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="studyGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={CHART_COLORS.primary} stopOpacity={0.35} />
-                      <stop offset="100%" stopColor={CHART_COLORS.primary} stopOpacity={0.02} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <AreaChart data={trend} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="4 4" stroke="hsl(var(--rule-hsl))" vertical={false} />
                   <XAxis dataKey="label" tick={axisTick} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-                  <YAxis tick={axisTick} axisLine={false} tickLine={false} width={38} unit="m" />
+                  <YAxis tick={axisTick} axisLine={false} tickLine={false} width={44} unit="m" />
                   <Tooltip contentStyle={tooltipStyle} labelFormatter={(_, payload) => payload?.[0]?.payload?.iso ?? ''} />
                   <Area
                     type="monotone"
                     dataKey="minutes"
                     name="Minutes"
-                    stroke={CHART_COLORS.primary}
-                    strokeWidth={2}
-                    fill="url(#studyGradient)"
+                    stroke={CHART_COLORS.ink}
+                    strokeWidth={2.5}
+                    fill={CHART_COLORS.highlighter}
+                    fillOpacity={0.5}
                   />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
-            <p className="mt-2 text-[11px] text-muted-foreground">
+            <p className="mt-2 text-sm text-muted-foreground">
               Best day this fortnight: <span className="font-semibold text-foreground">{formatDuration(bestDay)}</span>
             </p>
           </CardContent>
@@ -450,7 +451,7 @@ export function ProgressPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">{t('progress.completion')}</CardTitle>
+            <CardTitle>{t('progress.completion')}</CardTitle>
             <CardDescription>{t('progress.completionDesc')}</CardDescription>
           </CardHeader>
           <CardContent>
@@ -463,8 +464,9 @@ export function ProgressPage() {
                     nameKey="name"
                     innerRadius={54}
                     outerRadius={78}
-                    paddingAngle={3}
-                    strokeWidth={0}
+                    paddingAngle={2}
+                    stroke={CHART_COLORS.ink}
+                    strokeWidth={2}
                   >
                     {pieData.map((entry) => (
                       <Cell key={entry.name} fill={entry.color} />
@@ -474,20 +476,20 @@ export function ProgressPage() {
                 </PieChart>
               </ResponsiveContainer>
               <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                <span className="font-display text-2xl font-extrabold">{completionRate}%</span>
-                <span className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">Completed</span>
+                <span className="font-display text-4xl font-bold">{completionRate}%</span>
+                <span className="text-sm text-muted-foreground">completed</span>
               </div>
             </div>
-            <div className="mt-1 space-y-1.5">
+            <dl className="mt-1 border-t-2 border-dashed border-border">
               {pieData.map((entry) => (
-                <div key={entry.name} className="flex items-center justify-between text-[11px]">
-                  <span className="flex items-center gap-1.5 text-muted-foreground">
-                    <span className="size-2 rounded-full" style={{ backgroundColor: entry.color }} /> {entry.name}
-                  </span>
-                  <span className="font-bold">{entry.value}</span>
+                <div key={entry.name} className="flex items-center justify-between border-b border-dashed border-border py-1 text-sm">
+                  <dt className="flex items-center gap-1.5 text-muted-foreground">
+                    <span className="size-2.5 border border-foreground" style={{ backgroundColor: entry.color }} /> {entry.name}
+                  </dt>
+                  <dd className="font-bold">{entry.value}</dd>
                 </div>
               ))}
-            </div>
+            </dl>
           </CardContent>
         </Card>
 
@@ -495,12 +497,12 @@ export function ProgressPage() {
           <CardHeader className="pb-2">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <CardTitle className="text-base">{t('progress.quizTrend')}</CardTitle>
+                <CardTitle>{t('progress.quizTrend')}</CardTitle>
                 <CardDescription>{t('progress.quizTrendDesc')}</CardDescription>
               </div>
               {attempts.length > 0 && (
                 <Badge variant="secondary">
-                  <Trophy className="size-3" /> Best {bestScore}%
+                  <Trophy className="size-3.5" /> Best {bestScore}%
                 </Badge>
               )}
             </div>
@@ -515,7 +517,7 @@ export function ProgressPage() {
                 action={
                   <Button size="sm" asChild>
                     <Link to="/quizzes">
-                      <Sparkles className="size-3.5" /> {t('quizzes.generate')}
+                      <PencilDoodle className="size-5" /> {t('quizzes.generate')}
                     </Link>
                   </Button>
                 }
@@ -523,19 +525,19 @@ export function ProgressPage() {
             ) : (
               <div className="h-[210px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={quizTrend} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                  <LineChart data={quizTrend} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="4 4" stroke="hsl(var(--rule-hsl))" vertical={false} />
                     <XAxis dataKey="label" tick={axisTick} axisLine={false} tickLine={false} />
-                    <YAxis domain={[0, 100]} tick={axisTick} axisLine={false} tickLine={false} width={38} unit="%" />
+                    <YAxis domain={[0, 100]} tick={axisTick} axisLine={false} tickLine={false} width={44} unit="%" />
                     <Tooltip contentStyle={tooltipStyle} />
                     <Line
                       type="monotone"
                       dataKey="score"
                       name="Score"
-                      stroke={CHART_COLORS.info}
+                      stroke={CHART_COLORS.ink}
                       strokeWidth={2.5}
-                      dot={{ r: 3, fill: CHART_COLORS.info, strokeWidth: 0 }}
-                      activeDot={{ r: 5 }}
+                      dot={{ r: 3, fill: CHART_COLORS.highlighter, stroke: CHART_COLORS.ink, strokeWidth: 2 }}
+                      activeDot={{ r: 5, fill: CHART_COLORS.ink }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -546,23 +548,27 @@ export function ProgressPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">{t('progress.ratingVsActual')}</CardTitle>
+            <CardTitle>{t('progress.ratingVsActual')}</CardTitle>
             <CardDescription>{t('progress.ratingVsActualDesc')}</CardDescription>
           </CardHeader>
           <CardContent>
             <SubjectConfidence subjects={subjects} topics={topics} performance={performance} />
             {(weakest || strongest) && (
-              <div className="mt-4 space-y-1.5 border-t border-border pt-3">
+              <div className="mt-4 space-y-1.5 border-t-2 border-dashed border-border pt-3">
                 {weakest && (
-                  <div className="flex items-center justify-between gap-2 text-[11px]">
+                  <div className="flex items-center justify-between gap-2 text-sm">
                     <span className="text-muted-foreground">{t('progress.weak')}</span>
-                    <span className="truncate font-semibold text-destructive">{weakest.topicName} · {weakest.accuracy}%</span>
+                    <span className="truncate font-semibold text-destructive">
+                      {weakest.topicName} · {weakest.accuracy}%
+                    </span>
                   </div>
                 )}
                 {strongest && (
-                  <div className="flex items-center justify-between gap-2 text-[11px]">
+                  <div className="flex items-center justify-between gap-2 text-sm">
                     <span className="text-muted-foreground">{t('progress.strongest')}</span>
-                    <span className="truncate font-semibold text-success">{strongest.topicName} · {strongest.accuracy}%</span>
+                    <span className="truncate font-semibold text-success">
+                      {strongest.topicName} · {strongest.accuracy}%
+                    </span>
                   </div>
                 )}
               </div>
@@ -571,37 +577,33 @@ export function ProgressPage() {
         </Card>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">{t('progress.subjectSplit')}</CardTitle>
+            <CardTitle>{t('progress.subjectSplit')}</CardTitle>
             <CardDescription>{t('progress.subjectSplitDesc')}</CardDescription>
           </CardHeader>
           <CardContent>
             {subjectMinutes.length === 0 ? (
-              <p className="rounded-xl bg-muted/40 px-3 py-8 text-center text-xs text-muted-foreground">
+              <p className="border-y-2 border-dashed border-border py-8 text-center text-base text-muted-foreground">
                 Finish a study slot to see how your hours split across subjects.
               </p>
             ) : (
               <div style={{ height: Math.max(150, subjectMinutes.length * 44) }} className="w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={subjectMinutes} layout="vertical" margin={{ top: 0, right: 12, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+                    <CartesianGrid strokeDasharray="4 4" stroke="hsl(var(--rule-hsl))" horizontal={false} />
                     <XAxis type="number" tick={axisTick} axisLine={false} tickLine={false} unit="m" />
                     <YAxis
                       type="category"
                       dataKey="name"
-                      tick={{ fontSize: 10, fill: 'hsl(var(--foreground))' }}
+                      tick={{ fontSize: 11, fill: 'hsl(var(--foreground))' }}
                       axisLine={false}
                       tickLine={false}
                       width={80}
                     />
-                    <Tooltip contentStyle={tooltipStyle} />
-                    <Bar dataKey="minutes" name="Minutes" radius={[0, 6, 6, 0]} barSize={14}>
-                      {subjectMinutes.map((entry) => (
-                        <Cell key={entry.name} fill={entry.color} />
-                      ))}
-                    </Bar>
+                    <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(255,228,92,0.25)' }} />
+                    <Bar dataKey="minutes" name="Minutes" fill={CHART_COLORS.ink} barSize={14} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -613,16 +615,14 @@ export function ProgressPage() {
           <CardHeader className="pb-2">
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div>
-                <CardTitle className="text-base">{t('progress.heatmap')}</CardTitle>
+                <CardTitle>{t('progress.heatmap')}</CardTitle>
                 <CardDescription>{t('progress.heatmapDesc')}</CardDescription>
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant="accent">
-                  <Flame className="size-3" /> {streak.current} {t('progress.dayStreak')}
+                  <Flame className="size-3.5" /> {streak.current} {t('progress.dayStreak')}
                 </Badge>
-                {streak.best > streak.current && (
-                  <Badge variant="outline">Best {streak.best}</Badge>
-                )}
+                {streak.best > streak.current && <Badge variant="outline">Best {streak.best}</Badge>}
               </div>
             </div>
           </CardHeader>
@@ -634,28 +634,28 @@ export function ProgressPage() {
                     day.minutes === 0
                       ? 'bg-muted'
                       : day.minutes <= 30
-                        ? 'bg-primary/25'
+                        ? 'bg-accent/30'
                         : day.minutes <= 60
-                          ? 'bg-primary/45'
+                          ? 'bg-accent/55'
                           : day.minutes <= 90
-                            ? 'bg-primary/70'
-                            : 'bg-primary'
+                            ? 'bg-accent/80'
+                            : 'bg-accent'
                   return (
                     <div
                       key={day.iso}
-                      className={cn('size-3 rounded-[3px] sm:size-3.5', tone)}
+                      className={cn('size-3 rounded-[1px] border border-foreground/60 sm:size-3.5', tone)}
                       title={`${prettyDate(day.iso)} — ${day.minutes} min`}
                     />
                   )
                 })}
               </div>
             </div>
-            <div className="mt-3 flex items-center justify-between text-[10px] text-muted-foreground">
+            <div className="mt-3 flex items-center justify-between text-sm text-muted-foreground">
               <span>Last 12 weeks</span>
               <span className="flex items-center gap-1">
                 Less
-                {['bg-muted', 'bg-primary/25', 'bg-primary/45', 'bg-primary/70', 'bg-primary'].map((tone) => (
-                  <span key={tone} className={cn('size-2.5 rounded-[2px]', tone)} />
+                {['bg-muted', 'bg-accent/30', 'bg-accent/55', 'bg-accent/80', 'bg-accent'].map((tone) => (
+                  <span key={tone} className={cn('size-2.5 rounded-[1px] border border-foreground/60', tone)} />
                 ))}
                 More
               </span>
@@ -668,18 +668,14 @@ export function ProgressPage() {
         <CardHeader className="pb-2">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
-              <CardTitle className="text-base">{t('progress.coveredTopics')}</CardTitle>
+              <CardTitle>{t('progress.coveredTopics')}</CardTitle>
               <CardDescription>{t('progress.coveredDesc')}</CardDescription>
             </div>
             <Badge variant="success">
-              <CheckCircle2 className="size-3" /> {coveredTopics.length} / {topics.length}
+              <CheckCircle2 className="size-3.5" /> {coveredTopics.length} / {topics.length}
             </Badge>
           </div>
-          <Progress
-            value={percent(coveredTopics.length, Math.max(1, topics.length))}
-            className="mt-2 h-1.5"
-            indicatorClassName="bg-success"
-          />
+          <Progress value={percent(coveredTopics.length, Math.max(1, topics.length))} className="mt-2" />
         </CardHeader>
         <CardContent>
           {coveredGroups.length === 0 ? (
@@ -691,54 +687,45 @@ export function ProgressPage() {
               action={
                 <Button size="sm" asChild>
                   <Link to="/tasks">
-                    <Target className="size-3.5" /> {t('nav.tasks')}
+                    <Target className="size-4" /> {t('nav.tasks')}
                   </Link>
                 </Button>
               }
             />
           ) : (
-            <div className="space-y-2">
+            <div>
               {coveredGroups.map(({ subject, topics: groupTopics }) => {
                 const open = openSubjects.includes(subject.id)
                 return (
-                  <div key={subject.id} className="overflow-hidden rounded-xl border border-border">
+                  <div key={subject.id} className="border-b-2 border-dashed border-border">
                     <button
                       type="button"
                       onClick={() => toggleSubjectGroup(subject.id)}
                       aria-expanded={open}
-                      className="flex w-full items-center gap-2.5 bg-muted/30 px-3 py-2.5 text-left transition-colors hover:bg-muted/50"
+                      className="flex w-full items-center gap-2.5 py-2.5 text-left"
                     >
-                      <span
-                        className="flex size-7 shrink-0 items-center justify-center rounded-lg text-[10px] font-bold text-white"
-                        style={{ backgroundColor: subject.color }}
-                      >
+                      <span className="flex size-8 shrink-0 items-center justify-center rounded-[2px_6px_3px_5px] border-2 border-foreground text-xs font-bold">
                         {subject.name.slice(0, 2).toUpperCase()}
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-semibold">{subject.name}</span>
-                        <span className="block text-[10px] text-muted-foreground">
-                          {groupTopics.length} covered
-                        </span>
+                        <span className="block truncate font-semibold">{subject.name}</span>
+                        <span className="block text-sm text-muted-foreground">{groupTopics.length} covered</span>
                       </span>
                       <ChevronDown className={cn('size-4 shrink-0 text-muted-foreground transition-transform', open && 'rotate-180')} />
                     </button>
                     {open && (
-                      <ul className="divide-y divide-border">
+                      <ul>
                         {groupTopics.map((topic) => {
                           const cached = revisionSheets.some(
                             (item) => item.topicId === topic.id && item.subjectId === topic.subjectId,
                           )
                           return (
-                            <li key={topic.id} className="flex items-center gap-2 px-3 py-2">
-                              <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-success/10 text-success">
-                                <CheckCircle2 className="size-3" />
-                              </span>
+                            <li key={topic.id} className="flex items-center gap-2 border-t border-dashed border-border py-2 pl-2">
+                              <TickDoodle className="size-4 shrink-0" />
                               <div className="min-w-0 flex-1">
-                                <p className="truncate text-xs font-semibold">{topic.name}</p>
+                                <p className="truncate font-semibold">{topic.name}</p>
                                 {topic.coveredAt && (
-                                  <p className="text-[10px] text-muted-foreground">
-                                    Covered {prettyDate(topic.coveredAt.slice(0, 10))}
-                                  </p>
+                                  <p className="text-sm text-muted-foreground">Covered {prettyDate(topic.coveredAt.slice(0, 10))}</p>
                                 )}
                               </div>
                               {cached && (
@@ -767,22 +754,20 @@ export function ProgressPage() {
         <DialogContent size="lg">
           <DialogHeader>
             <div className="mb-1 flex flex-wrap items-center gap-2">
-              <Badge variant="violet">
-                <Sparkles className="size-3" /> {t('progress.revisionSheet')}
+              <Badge variant="accent">
+                <PencilDoodle className="size-3.5" /> {t('progress.revisionSheet')}
               </Badge>
               {sheet && revisionSheets.some((item) => item.id === sheet.id) && (
                 <Badge variant="outline">{t('progress.cached')}</Badge>
               )}
             </div>
             <DialogTitle>{sheetTopic?.name ?? t('progress.revisionSheet')}</DialogTitle>
-            <DialogDescription>
-              {subjects.find((subject) => subject.id === sheetTopic?.subjectId)?.name}
-            </DialogDescription>
+            <DialogDescription>{subjects.find((subject) => subject.id === sheetTopic?.subjectId)?.name}</DialogDescription>
           </DialogHeader>
           <DialogBody>
             {sheetLoading || !sheet ? (
               <div className="space-y-3">
-                <p className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                <p className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                   <Loader2 className="size-3.5 animate-spin" /> {t('progress.generating')}
                 </p>
                 <Skeleton className="h-4 w-1/2" />
@@ -810,22 +795,20 @@ export function ProgressPage() {
       </Dialog>
 
       {coveredTopics.length === 0 && attempts.length === 0 && (
-        <Card className="border-dashed bg-transparent">
-          <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <BookOpen className="size-4 text-primary" />
-              Complete a slot quiz and a custom quiz to unlock the full analytics view.
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" asChild>
-                <Link to="/tasks">{t('nav.tasks')}</Link>
-              </Button>
-              <Button size="sm" asChild>
-                <Link to="/quizzes">{t('nav.quizzes')}</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="flex flex-col gap-3 border-2 border-dashed border-foreground/40 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2 text-base text-muted-foreground">
+            <BookOpen className="size-4" />
+            Complete a slot quiz and a custom quiz to unlock the full picture.
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/tasks">{t('nav.tasks')}</Link>
+            </Button>
+            <Button size="sm" asChild>
+              <Link to="/quizzes">{t('nav.quizzes')}</Link>
+            </Button>
+          </div>
+        </div>
       )}
     </div>
   )

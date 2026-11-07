@@ -34,8 +34,9 @@ export function StatusBadge({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold',
+        'inline-flex items-center gap-1 rounded-[3px_8px_4px_7px] border-2 px-2 py-0.5 text-sm font-semibold',
         styles[status],
+        status === 'missed' && 'missed-strike',
         isExam && 'status-exam',
         className,
       )}
@@ -52,7 +53,7 @@ export function slotAccent(status: SlotStatus, source?: SlotSource) {
   if (status === 'running') return 'border-l-primary'
   if (status === 'skipped') return 'border-l-warning'
   if (status === 'missed') return 'border-l-destructive'
-  if (source === 'exam' || source === 'revision') return 'border-l-violet-500'
+  if (source === 'exam' || source === 'revision') return 'border-l-accent'
   return 'border-l-info'
 }
 
@@ -61,6 +62,6 @@ export function slotDot(status: SlotStatus, source?: SlotSource) {
   if (status === 'running') return 'bg-primary'
   if (status === 'skipped') return 'bg-warning'
   if (status === 'missed') return 'bg-destructive'
-  if (source === 'exam' || source === 'revision') return 'bg-violet-500'
+  if (source === 'exam' || source === 'revision') return 'bg-accent'
   return 'bg-info'
 }

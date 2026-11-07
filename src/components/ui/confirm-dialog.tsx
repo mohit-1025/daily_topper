@@ -36,7 +36,7 @@ export function ConfirmDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent size="sm" className="sm:max-w-md">
         <DialogHeader>
-          <div className="mb-1 flex size-11 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
+          <div className="mb-1 flex size-11 rotate-[-1deg] items-center justify-center rounded-[6px_14px_7px_11px] border-2 border-destructive bg-transparent text-destructive">
             <AlertTriangle className="size-5" />
           </div>
           <DialogTitle>{title}</DialogTitle>

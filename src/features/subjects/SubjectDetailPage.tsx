@@ -1,10 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
   ArrowLeft,
   ArrowRight,
-  BookOpen,
   Check,
   ChevronRight,
   ClipboardList,
@@ -21,10 +20,10 @@ import {
   Trash2,
   UploadCloud,
 } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
 import { FileIcon } from '@/components/shared/file-icon'
+import { BookDoodle, NoteDoodle, PencilDoodle, TickDoodle } from '@/components/shared/doodles'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress, RatingStars, Skeleton } from '@/components/ui/misc'
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -35,6 +34,8 @@ import { extractUploadText, getUploadUrl, downloadUpload } from '@/lib/extract'
 import { cn, formatBytes, percent, prettyDate } from '@/lib/utils'
 import type { GeneratedContent, GeneratedType, Upload } from '@/types'
 
+type IconComponent = (props: { className?: string }) => ReactNode
+
 const typeLabels: Record<GeneratedType, string> = {
   summary: 'Summary',
   notes: 'Study notes',
@@ -43,10 +44,10 @@ const typeLabels: Record<GeneratedType, string> = {
   revision: 'Revision sheet',
 }
 
-const typeIcons: Record<GeneratedType, LucideIcon> = {
-  summary: Sparkles,
-  notes: BookOpen,
-  flashcards: FolderOpen,
+const typeIcons: Record<GeneratedType, IconComponent> = {
+  summary: PencilDoodle,
+  notes: BookDoodle,
+  flashcards: NoteDoodle,
   questions: ClipboardList,
   revision: FileText,
 }
@@ -88,25 +89,25 @@ function UploadPreview({ upload, onClose }: { upload: Upload; onClose: () => voi
         </DialogHeader>
         <DialogBody>
           {loading ? (
-            <Skeleton className="h-64 w-full rounded-xl" />
+            <Skeleton className="h-64 w-full" />
           ) : upload.kind === 'note' ? (
-            <pre className="max-h-[55vh] overflow-auto whitespace-pre-wrap rounded-xl bg-muted/50 p-4 text-xs leading-relaxed text-muted-foreground">
+            <pre className="max-h-[55vh] overflow-auto whitespace-pre-wrap border-2 border-dashed border-border p-4 text-base leading-8 text-muted-foreground">
               {upload.noteText ?? 'No text preview available.'}
             </pre>
           ) : upload.kind === 'image' && url ? (
-            <div className="flex max-h-[55vh] items-center justify-center overflow-auto rounded-xl bg-muted/40 p-3">
-              <img src={url} alt={upload.name} className="max-h-[50vh] rounded-lg object-contain" />
+            <div className="flex max-h-[55vh] items-center justify-center overflow-auto border-2 border-dashed border-border p-3">
+              <img src={url} alt={upload.name} className="max-h-[50vh] object-contain" />
             </div>
           ) : upload.kind === 'pdf' && url ? (
-            <iframe title={upload.name} src={url} className="h-[55vh] w-full rounded-xl border border-border" />
+            <iframe title={upload.name} src={url} className="h-[55vh] w-full border-2 border-dashed border-border" />
           ) : upload.kind === 'audio' && url ? (
-            <div className="rounded-xl bg-muted/40 p-6">
+            <div className="border-2 border-dashed border-border p-6">
               <audio controls src={url} className="w-full" />
             </div>
           ) : upload.kind === 'video' && url ? (
-            <video controls src={url} className="max-h-[55vh] w-full rounded-xl bg-black" />
+            <video controls src={url} className="max-h-[55vh] w-full border-2 border-dashed border-border bg-foreground" />
           ) : (
-            <p className="rounded-xl bg-muted/50 p-6 text-center text-sm text-muted-foreground">
+            <p className="border-2 border-dashed border-border p-6 text-center text-base text-muted-foreground">
               Preview is unavailable for this file. Download it to open on your device.
             </p>
           )}
@@ -141,16 +142,14 @@ function GeneratedPreview({ item, onClose }: { item: GeneratedContent; onClose: 
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent size="lg">
         <DialogHeader>
-          <div className="mb-1 flex items-center gap-2">
-            <Badge variant="violet">
-              <Sparkles className="size-3" /> {typeLabels[item.type]}
-            </Badge>
-            <span className="text-[11px] text-muted-foreground">{prettyDate(item.createdAt)}</span>
+          <div className="mb-1 flex flex-wrap items-center gap-2">
+            <Badge variant="accent">{typeLabels[item.type]}</Badge>
+            <span className="text-sm text-muted-foreground">{prettyDate(item.createdAt)}</span>
           </div>
           <DialogTitle className="pr-8">{item.title}</DialogTitle>
         </DialogHeader>
         <DialogBody>
-          <div className="print-area rounded-xl border border-border bg-background/60 p-4">
+          <div className="print-area border-2 border-dashed border-border p-4">
             <Markdown content={item.body} />
           </div>
         </DialogBody>
@@ -223,9 +222,9 @@ export function SubjectDetailPage() {
     return (
       <Card>
         <CardContent className="p-10 text-center">
-          <BookOpen className="mx-auto size-8 text-muted-foreground/50" />
-          <h2 className="mt-3 font-display text-lg font-bold">{t('common.notFound')}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">This subject may have been deleted.</p>
+          <BookDoodle className="mx-auto size-8 text-muted-foreground/50" />
+          <h2 className="mt-3 font-display text-2xl">{t('common.notFound')}</h2>
+          <p className="mt-1 text-base text-muted-foreground">This subject may have been deleted.</p>
           <Button className="mt-4" asChild>
             <Link to="/subjects">
               <ArrowLeft className="size-4" /> {t('subjects.detailBack')}
@@ -303,28 +302,25 @@ export function SubjectDetailPage() {
   const coveredPercent = percent(coveredCount, Math.max(1, subjectTopics.length))
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <button
         type="button"
         onClick={() => navigate('/subjects')}
-        className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground"
+        className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground underline decoration-[var(--rule)] decoration-2 underline-offset-4 transition-colors hover:text-foreground"
       >
         <ArrowLeft className="size-3.5" /> {t('subjects.detailBack')}
       </button>
 
-      <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 shadow-soft sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-4">
-          <span
-            className="flex size-14 shrink-0 items-center justify-center rounded-2xl text-base font-bold text-white shadow-sm"
-            style={{ backgroundColor: subject.color }}
-          >
+      <div className="flex flex-col gap-4 border-b-2 border-foreground pb-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-start gap-4">
+          <span className="flex size-14 shrink-0 items-center justify-center border-2 border-foreground font-display text-xl leading-none">
             {subject.name.slice(0, 2).toUpperCase()}
           </span>
           <div>
-            <h1 className="font-display text-2xl font-extrabold tracking-tight">{subject.name}</h1>
+            <h1 className="font-display text-3xl leading-tight">{subject.name}</h1>
             <div className="mt-1 flex flex-wrap items-center gap-2">
               <RatingStars value={subject.selfRating} size="sm" />
-              <span className="text-[11px] text-muted-foreground">
+              <span className="text-sm text-muted-foreground">
                 {ratingLabels[subject.selfRating - 1]} · {t('subjects.rating')}
               </span>
             </div>
@@ -343,34 +339,34 @@ export function SubjectDetailPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-x-4 border-y-2 border-dashed border-border py-3 sm:grid-cols-4">
         {[
           { label: t('common.topics'), value: `${coveredCount}/${subjectTopics.length}` },
           { label: t('subjects.uploadCta').split(' ')[0], value: subjectUploads.length },
-          { label: 'AI content', value: subjectGenerated.length },
+          { label: 'Saved notes', value: subjectGenerated.length },
           { label: 'Upcoming slots', value: futureSlots },
         ].map((stat) => (
-          <Card key={stat.label}>
-            <CardContent className="p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{stat.label}</p>
-              <p className="mt-1 font-display text-xl font-extrabold">{stat.value}</p>
-            </CardContent>
-          </Card>
+          <div key={stat.label} className="px-1">
+            <p className="font-display text-2xl leading-none">{stat.value}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{stat.label}</p>
+          </div>
         ))}
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-2">
-        <Card>
-          <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
-            <div>
-              <CardTitle className="text-base">{t('subjects.uploads')}</CardTitle>
-              <p className="text-xs text-muted-foreground">{t('subjects.uploadsDesc')}</p>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card className="tape">
+          <CardContent className="space-y-3 p-5">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div>
+                <h2 className="flex items-center gap-2 font-display text-2xl leading-tight">
+                  <FolderOpen className="size-5" /> {t('subjects.uploads')}
+                </h2>
+                <p className="mt-1 text-base leading-8 text-muted-foreground">{t('subjects.uploadsDesc')}</p>
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => fileInput.current?.click()} disabled={uploading}>
+                <Plus className="size-3.5" /> {t('common.upload')}
+              </Button>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => fileInput.current?.click()} disabled={uploading}>
-              <Plus className="size-3.5" /> {t('common.upload')}
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-3">
             <div
               onDragOver={(event) => {
                 event.preventDefault()
@@ -389,8 +385,10 @@ export function SubjectDetailPage() {
                 if (event.key === 'Enter' || event.key === ' ') fileInput.current?.click()
               }}
               className={cn(
-                'flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-4 py-7 text-center transition-colors',
-                dragging ? 'border-primary bg-primary-soft' : 'border-border bg-muted/20 hover:border-primary/40 hover:bg-primary-soft/40',
+                'flex cursor-pointer flex-col items-center justify-center border-2 border-dashed px-4 py-7 text-center transition-colors',
+                dragging
+                  ? 'border-foreground bg-[hsl(var(--highlighter-hsl)/0.35)]'
+                  : 'border-foreground/40 hover:border-foreground hover:bg-[hsl(var(--highlighter-hsl)/0.2)]',
               )}
             >
               <input
@@ -401,31 +399,31 @@ export function SubjectDetailPage() {
                 accept=".pdf,.txt,.md,image/*,audio/*,video/*"
                 onChange={(event) => event.target.files && void handleFiles(event.target.files)}
               />
-              <span className="flex size-11 items-center justify-center rounded-xl bg-primary-soft text-primary">
-                {uploading ? <Loader2 className="size-5 animate-spin" /> : <UploadCloud className="size-5" />}
-              </span>
-              <p className="mt-2 text-sm font-semibold">{uploading ? 'Extracting text and finding topics…' : t('subjects.dropHint')}</p>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">{t('subjects.dropFormats')}</p>
+              {uploading ? <Loader2 className="size-6 animate-spin" /> : <UploadCloud className="size-7" />}
+              <p className="mt-2 text-base font-semibold">
+                {uploading ? 'Reading the file and finding topics…' : t('subjects.dropHint')}
+              </p>
+              <p className="mt-0.5 text-sm text-muted-foreground">{t('subjects.dropFormats')}</p>
             </div>
-            {uploadError && <p className="text-xs font-medium text-destructive">{uploadError}</p>}
+            {uploadError && <p className="text-sm font-medium text-destructive">{uploadError}</p>}
 
             {subjectUploads.length === 0 ? (
-              <div className="rounded-xl bg-muted/30 px-4 py-6 text-center">
-                <FileText className="mx-auto size-6 text-muted-foreground/50" />
-                <p className="mt-2 text-sm font-medium">{t('subjects.noUploads')}</p>
-                <p className="text-xs text-muted-foreground">{t('subjects.noUploadsDesc')}</p>
+              <div className="border-2 border-dashed border-border px-4 py-6 text-center">
+                <FileText className="mx-auto size-6 text-muted-foreground/60" />
+                <p className="mt-2 text-base font-semibold">{t('subjects.noUploads')}</p>
+                <p className="text-sm text-muted-foreground">{t('subjects.noUploadsDesc')}</p>
               </div>
             ) : (
-              <ul className="space-y-2">
+              <ul>
                 {subjectUploads.map((upload) => (
                   <li
                     key={upload.id}
-                    className="flex items-center gap-3 rounded-xl border border-border bg-background/60 p-2.5"
+                    className="flex items-center gap-3 border-b-2 border-dashed border-border py-2.5 last:border-0"
                   >
-                    <FileIcon kind={upload.kind} className="size-9 rounded-lg [&_svg]:size-4" />
+                    <FileIcon kind={upload.kind} className="size-9 shrink-0 [&_svg]:size-4" />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-xs font-semibold">{upload.name}</p>
-                      <p className="text-[10px] text-muted-foreground">
+                      <p className="truncate text-sm font-semibold">{upload.name}</p>
+                      <p className="text-sm text-muted-foreground">
                         {formatBytes(upload.size)} · {prettyDate(upload.createdAt)}
                       </p>
                     </div>
@@ -433,7 +431,7 @@ export function SubjectDetailPage() {
                       <button
                         type="button"
                         onClick={() => setPreviewUpload(upload)}
-                        className="flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
+                        className="flex size-8 items-center justify-center text-muted-foreground hover:text-foreground"
                         aria-label={t('common.preview')}
                       >
                         <Eye className="size-4" />
@@ -441,7 +439,7 @@ export function SubjectDetailPage() {
                       <button
                         type="button"
                         onClick={() => downloadUpload(upload, guest)}
-                        className="flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
+                        className="flex size-8 items-center justify-center text-muted-foreground hover:text-foreground"
                         aria-label={t('common.download')}
                       >
                         <Download className="size-4" />
@@ -449,7 +447,7 @@ export function SubjectDetailPage() {
                       <button
                         type="button"
                         onClick={() => setDeleteUploadTarget(upload)}
-                        className="flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                        className="flex size-8 items-center justify-center text-muted-foreground hover:text-destructive"
                         aria-label={t('common.delete')}
                       >
                         <Trash2 className="size-4" />
@@ -462,132 +460,138 @@ export function SubjectDetailPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
+        <section className="min-w-0">
+          <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
-              <CardTitle className="text-base">{t('subjects.aiFolder')}</CardTitle>
-              <p className="text-xs text-muted-foreground">{t('subjects.aiFolderDesc')}</p>
+              <h2 className="flex items-center gap-2 font-display text-2xl leading-tight">
+                <NoteDoodle className="size-5" /> {t('subjects.aiFolder')}
+              </h2>
+              <p className="mt-1 text-base leading-8 text-muted-foreground">{t('subjects.aiFolderDesc')}</p>
             </div>
             <Button variant="ghost" size="sm" onClick={() => setGenerateOpen(true)}>
-              <Sparkles className="size-3.5" /> {t('common.generate')}
+              <PencilDoodle className="size-3.5" /> {t('common.generate')}
             </Button>
-          </CardHeader>
-          <CardContent className="space-y-2">
+          </div>
+          <div className="mt-3">
             {subjectGenerated.length === 0 ? (
-              <div className="rounded-xl bg-muted/30 px-4 py-8 text-center">
-                <Sparkles className="mx-auto size-6 text-muted-foreground/50" />
-                <p className="mt-2 text-sm font-medium">{t('subjects.noGenerated')}</p>
-                <p className="text-xs text-muted-foreground">{t('subjects.noGeneratedDesc')}</p>
+              <div className="border-2 border-dashed border-border px-4 py-8 text-center">
+                <NoteDoodle className="mx-auto size-6 text-muted-foreground/60" />
+                <p className="mt-2 text-base font-semibold">{t('subjects.noGenerated')}</p>
+                <p className="mt-0.5 text-sm leading-7 text-muted-foreground">{t('subjects.noGeneratedDesc')}</p>
                 <Button size="sm" className="mt-3" onClick={() => setGenerateOpen(true)}>
-                  <Sparkles className="size-3.5" /> {t('subjects.generateCta')}
+                  <PencilDoodle className="size-3.5" /> {t('subjects.generateCta')}
                 </Button>
               </div>
             ) : (
-              subjectGenerated.map((item) => {
-                const Icon = typeIcons[item.type]
-                return (
-                  <div key={item.id} className="flex items-center gap-3 rounded-xl border border-border bg-background/60 p-2.5">
-                    <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-violet-500/10 text-violet-500">
-                      <Icon className="size-4" />
-                    </span>
-                    <button type="button" onClick={() => setPreviewGenerated(item)} className="min-w-0 flex-1 text-left">
-                      <p className="truncate text-xs font-semibold">{item.title}</p>
-                      <p className="text-[10px] text-muted-foreground">
-                        {typeLabels[item.type]} · {prettyDate(item.createdAt)}
-                      </p>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void regenerate(item)}
-                      className="flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
-                      aria-label={t('common.regenerate')}
+              <ul>
+                {subjectGenerated.map((item) => {
+                  const Icon = typeIcons[item.type]
+                  return (
+                    <li
+                      key={item.id}
+                      className="flex items-center gap-3 border-b-2 border-dashed border-border py-2.5 first:border-t-2 last:border-b-0"
                     >
-                      <RefreshCw className="size-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPreviewGenerated(item)}
-                      className="flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
-                      aria-label={t('common.view')}
-                    >
-                      <Eye className="size-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => deleteGenerated(item.id)}
-                      className="flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                      aria-label={t('common.delete')}
-                    >
-                      <Trash2 className="size-4" />
-                    </button>
-                  </div>
-                )
-              })
+                      <span className="flex size-9 shrink-0 items-center justify-center border-2 border-foreground">
+                        <Icon className="size-4" />
+                      </span>
+                      <button type="button" onClick={() => setPreviewGenerated(item)} className="min-w-0 flex-1 text-left">
+                        <p className="truncate text-sm font-semibold">{item.title}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {typeLabels[item.type]} · {prettyDate(item.createdAt)}
+                        </p>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void regenerate(item)}
+                        className="flex size-8 items-center justify-center text-muted-foreground hover:text-foreground"
+                        aria-label={t('common.regenerate')}
+                      >
+                        <RefreshCw className="size-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPreviewGenerated(item)}
+                        className="flex size-8 items-center justify-center text-muted-foreground hover:text-foreground"
+                        aria-label={t('common.view')}
+                      >
+                        <Eye className="size-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deleteGenerated(item.id)}
+                        className="flex size-8 items-center justify-center text-muted-foreground hover:text-destructive"
+                        aria-label={t('common.delete')}
+                      >
+                        <Trash2 className="size-4" />
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </section>
       </div>
 
-      <Card>
-        <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
+      <section>
+        <div className="flex flex-wrap items-end justify-between gap-2">
           <div>
-            <CardTitle className="text-base">{t('subjects.topicsTitle')}</CardTitle>
-            <p className="text-xs text-muted-foreground">
+            <h2 className="font-display text-2xl leading-tight">{t('subjects.topicsTitle')}</h2>
+            <p className="mt-1 text-base leading-8 text-muted-foreground">
               {t('subjects.topicsCovered', { percent: coveredPercent })} · tap a topic to mark it covered
             </p>
           </div>
-          <Badge variant="success">
-            <Check className="size-3" /> {coveredCount}/{subjectTopics.length}
-          </Badge>
-        </CardHeader>
-        <CardContent>
-          <Progress value={coveredPercent} className="mb-4" indicatorClassName="bg-success" />
-          <div className="grid gap-2 sm:grid-cols-2">
-            {subjectTopics.map((topic) => (
-              <button
-                key={topic.id}
-                type="button"
-                onClick={() => toggleTopicCovered(topic.id)}
+          <span className="flex items-center gap-1 text-sm font-semibold">
+            <TickDoodle className="size-4" /> {coveredCount}/{subjectTopics.length}
+          </span>
+        </div>
+        <div className="mt-2 flex items-center gap-3">
+          <Progress value={coveredPercent} className="h-4 flex-1" />
+          <span className="w-14 text-right font-display text-2xl leading-none">{coveredPercent}%</span>
+        </div>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          {subjectTopics.map((topic) => (
+            <button
+              key={topic.id}
+              type="button"
+              onClick={() => toggleTopicCovered(topic.id)}
+              className={cn(
+                'flex items-center gap-2.5 border-b-2 border-dashed border-border px-1 py-2.5 text-left transition-colors',
+                topic.status === 'covered'
+                  ? 'bg-[hsl(var(--highlighter-hsl)/0.28)]'
+                  : 'hover:bg-[hsl(var(--highlighter-hsl)/0.16)]',
+              )}
+            >
+              <span
                 className={cn(
-                  'flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-colors',
-                  topic.status === 'covered'
-                    ? 'border-success/25 bg-success/5'
-                    : 'border-border bg-background/60 hover:bg-muted/50',
+                  'flex size-6 shrink-0 items-center justify-center border-2',
+                  topic.status === 'covered' ? 'border-foreground bg-foreground text-primary-foreground' : 'border-foreground/50',
                 )}
               >
-                <span
-                  className={cn(
-                    'flex size-6 shrink-0 items-center justify-center rounded-full border',
-                    topic.status === 'covered'
-                      ? 'border-success bg-success text-white'
-                      : 'border-border bg-card text-transparent',
-                  )}
-                >
-                  <Check className="size-3.5" strokeWidth={3} />
+                {topic.status === 'covered' ? <TickDoodle className="size-3.5" /> : <Check className="size-3.5 text-transparent" />}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className={cn('block truncate text-base', topic.status === 'covered' && 'missed-strike')}>
+                  {topic.name}
                 </span>
-                <span className="min-w-0 flex-1">
-                  <span className={cn('block truncate text-xs font-semibold', topic.status === 'covered' && 'text-success')}>
-                    {topic.name}
-                  </span>
-                  <span className="text-[10px] capitalize text-muted-foreground">{topic.difficulty}</span>
-                </span>
-                <ChevronRight className="size-3.5 text-muted-foreground/50" />
-              </button>
-            ))}
-          </div>
-          {subjectTopics.length === 0 && (
-            <p className="rounded-xl bg-muted/40 px-3 py-4 text-center text-xs text-muted-foreground">
-              Upload a chapter or create a quiz to add topics.
-            </p>
-          )}
-        </CardContent>
-      </Card>
+                <span className="text-sm capitalize text-muted-foreground">{topic.difficulty}</span>
+              </span>
+              <ChevronRight className="size-3.5 text-muted-foreground/60" />
+            </button>
+          ))}
+        </div>
+        {subjectTopics.length === 0 && (
+          <p className="border-b-2 border-dashed border-border py-4 text-center text-base text-muted-foreground">
+            Upload a chapter or create a quiz to add topics.
+          </p>
+        )}
+      </section>
 
-      <div className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-border bg-card p-4 sm:flex-row sm:items-center">
-        <p className="text-xs text-muted-foreground">
+      <div className="flex flex-col items-start justify-between gap-3 border-l-4 border-[var(--margin-line)] pl-3 sm:flex-row sm:items-center">
+        <p className="max-w-[60ch] text-sm leading-7 text-muted-foreground">
           {t('subjects.editRatingDesc')} · {t('tasks.startHint')}
         </p>
-        <Button variant="soft" size="sm" asChild>
+        <Button variant="outline" size="sm" asChild>
           <Link to="/tasks">
             {t('plan.openTasks')} <ArrowRight className="size-3.5" />
           </Link>
@@ -601,9 +605,9 @@ export function SubjectDetailPage() {
             <DialogDescription>{t('subjects.editRatingDesc')}</DialogDescription>
           </DialogHeader>
           <DialogBody>
-            <div className="rounded-xl border border-border bg-muted/40 p-4">
+            <div className="border-2 border-dashed border-border p-4">
               <RatingStars value={rating} onChange={setRating} size="lg" showLabel />
-              <div className="mt-2 flex justify-between text-[10px] font-medium text-muted-foreground">
+              <div className="mt-2 flex justify-between text-sm text-muted-foreground">
                 <span>{t('subjects.veryWeak')}</span>
                 <span>{ratingLabels[rating - 1]}</span>
                 <span>{t('subjects.veryStrong')}</span>
@@ -624,13 +628,11 @@ export function SubjectDetailPage() {
       <Dialog open={generateOpen} onOpenChange={(open) => !generating && setGenerateOpen(open)}>
         <DialogContent size="md">
           <DialogHeader>
-            <div className="mb-1 flex size-11 items-center justify-center rounded-xl bg-violet-500/10 text-violet-500">
-              <Sparkles className="size-5" />
-            </div>
+            <NoteDoodle className="size-7" />
             <DialogTitle>{t('subjects.generateTitle')}</DialogTitle>
             <DialogDescription>{t('subjects.generateDesc', { subject: subject.name })}</DialogDescription>
           </DialogHeader>
-          <DialogBody className="space-y-3">
+          <DialogBody className="space-y-2">
             {(['summary', 'notes', 'flashcards', 'questions', 'revision'] as GeneratedType[]).map((type) => {
               const Icon = typeIcons[type]
               return (
@@ -639,47 +641,49 @@ export function SubjectDetailPage() {
                   type="button"
                   onClick={() => setGenerateType(type)}
                   className={cn(
-                    'flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-colors',
-                    generateType === type ? 'border-primary bg-primary-soft' : 'border-border hover:bg-muted/50',
+                    'flex w-full items-center gap-3 border-2 px-3 py-2.5 text-left transition-colors',
+                    generateType === type
+                      ? 'border-foreground bg-[hsl(var(--highlighter-hsl)/0.35)]'
+                      : 'border-transparent hover:bg-[hsl(var(--highlighter-hsl)/0.15)]',
                   )}
                 >
                   <span
                     className={cn(
-                      'flex size-10 items-center justify-center rounded-lg',
-                      generateType === type ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground',
+                      'flex size-9 shrink-0 items-center justify-center border-2',
+                      generateType === type ? 'border-foreground' : 'border-border',
                     )}
                   >
                     <Icon className="size-4" />
                   </span>
                   <span className="flex-1">
-                    <span className="block text-sm font-semibold">{typeLabels[type]}</span>
-                    <span className="block text-[11px] text-muted-foreground">
+                    <span className="block text-base font-semibold">{typeLabels[type]}</span>
+                    <span className="block text-sm leading-6 text-muted-foreground">
                       {type === 'flashcards'
                         ? 'Question and answer cards for active recall.'
                         : type === 'questions'
                           ? 'Exam-style MCQs with explained answers.'
                           : type === 'revision'
                             ? 'Key points, definitions, mnemonics and mistakes.'
-                            : 'Grounded in your uploads and topics.'}
+                            : 'Written from your uploads and topic list.'}
                     </span>
                   </span>
                   <span
                     className={cn(
-                      'flex size-5 items-center justify-center rounded-full border',
-                      generateType === type ? 'border-primary bg-primary text-white' : 'border-border',
+                      'flex size-5 items-center justify-center border-2',
+                      generateType === type ? 'border-foreground bg-foreground text-primary-foreground' : 'border-border',
                     )}
                   >
-                    {generateType === type && <Check className="size-3" strokeWidth={3} />}
+                    {generateType === type && <TickDoodle className="size-3" />}
                   </span>
                 </button>
               )
             })}
             {generating && (
-              <div className="space-y-2 rounded-xl border border-border p-3">
+              <div className="space-y-2 border-2 border-dashed border-border p-3">
                 <Skeleton className="h-3 w-1/3" />
                 <Skeleton className="h-3 w-full" />
                 <Skeleton className="h-3 w-4/5" />
-                <p className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                <p className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Loader2 className="size-3.5 animate-spin" /> {t('subjects.generating')}
                 </p>
               </div>
@@ -690,7 +694,7 @@ export function SubjectDetailPage() {
               {t('common.cancel')}
             </Button>
             <Button onClick={runGenerate} loading={generating}>
-              {!generating && <Sparkles className="size-4" />}
+              {!generating && <PencilDoodle className="size-4" />}
               {t('common.generate')}
             </Button>
           </DialogFooter>
@@ -701,7 +705,7 @@ export function SubjectDetailPage() {
         open={Boolean(deleteUploadTarget)}
         onOpenChange={(open) => !open && setDeleteUploadTarget(null)}
         title={`Delete ${deleteUploadTarget?.name ?? 'this upload'}?`}
-        description="The file will be removed from this device. AI content generated from it stays in your folder."
+        description="The file will be removed from this device. Any notes generated from it stay in your folder."
         confirmLabel={t('common.delete')}
         destructive
         onConfirm={() => {

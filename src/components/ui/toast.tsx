@@ -12,10 +12,10 @@ const icons: Record<ToastKind, typeof Info> = {
 }
 
 const tones: Record<ToastKind, string> = {
-  success: 'text-success bg-success/10 border-success/20',
-  error: 'text-destructive bg-destructive/10 border-destructive/20',
-  info: 'text-info bg-info/10 border-info/20',
-  warning: 'text-warning bg-warning/10 border-warning/20',
+  success: 'text-success bg-success/10 border-success/50',
+  error: 'text-destructive bg-destructive/10 border-destructive/50',
+  info: 'text-info bg-info/10 border-info/50',
+  warning: 'text-warning bg-warning/10 border-warning/50',
 }
 
 export function Toaster() {
@@ -35,7 +35,7 @@ export function Toaster() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -8, scale: 0.97 }}
               transition={{ duration: 0.22 }}
-              className="pointer-events-auto flex w-full max-w-md items-start gap-3 rounded-2xl border border-border bg-popover/95 p-3.5 shadow-lift backdrop-blur-xl sm:w-96"
+              className="pointer-events-auto flex w-full max-w-md items-start gap-3 rounded-[5px_14px_7px_11px] border-2 border-foreground bg-card p-3.5 shadow-[4px_4px_0_hsl(var(--foreground)/0.24)] sm:w-96"
               role="status"
             >
               <span className={cn('mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg border', tones[toast.kind])}>

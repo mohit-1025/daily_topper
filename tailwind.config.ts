@@ -2,7 +2,6 @@ import type { Config } from 'tailwindcss'
 import animate from 'tailwindcss-animate'
 
 const config: Config = {
-  darkMode: ['class'],
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     container: {
@@ -55,15 +54,16 @@ const config: Config = {
         md: 'calc(var(--radius) - 4px)',
         sm: 'calc(var(--radius) - 8px)',
         '2xl': '1.25rem',
+        'notebook': '6px 14px 8px 12px',
       },
       fontFamily: {
-        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        display: ['"Plus Jakarta Sans"', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['"Patrick Hand"', '"Segoe Print"', '"Comic Sans MS"', 'cursive'],
+        display: ['"Caveat Brush"', '"Patrick Hand"', '"Segoe Print"', 'cursive'],
       },
       boxShadow: {
-        soft: '0 2px 8px -2px rgb(24 20 50 / 0.06), 0 12px 32px -12px rgb(24 20 50 / 0.12)',
-        lift: '0 4px 12px -4px rgb(24 20 50 / 0.08), 0 24px 48px -20px rgb(24 20 50 / 0.18)',
-        glow: '0 0 0 1px hsl(var(--primary) / 0.15), 0 12px 40px -12px hsl(var(--primary) / 0.45)',
+        soft: '3px 3px 0 hsl(var(--foreground) / 0.2)',
+        lift: '5px 5px 0 hsl(var(--foreground) / 0.26)',
+        glow: '0 0 0 3px hsl(var(--highlighter-hsl) / 0.65)',
       },
       keyframes: {
         'fade-up': {
@@ -75,13 +75,18 @@ const config: Config = {
         },
         float: {
           '0%,100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-8px)' },
+          '50%': { transform: 'translateY(-4px)' },
+        },
+        'slide-in': {
+          from: { opacity: '0', transform: 'translateX(-12px)' },
+          to: { opacity: '1', transform: 'translateX(0)' },
         },
       },
       animation: {
-        'fade-up': 'fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both',
+        'fade-up': 'fade-up 0.35s cubic-bezier(0.22, 1, 0.36, 1) both',
         shimmer: 'shimmer 1.6s infinite',
         float: 'float 6s ease-in-out infinite',
+        'slide-in': 'slide-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both',
       },
       screens: {
         xs: '420px',

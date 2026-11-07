@@ -1,13 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { AnimatePresence, motion } from 'framer-motion'
 import {
   ArrowRight,
   BookOpen,
   CalendarClock,
   Check,
-  CheckCircle2,
   Clock,
   FileText,
   Lightbulb,
@@ -16,18 +14,22 @@ import {
   Play,
   RefreshCw,
   SkipForward,
-  Sparkles,
   Timer,
-  UploadCloud,
-  Zap,
 } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
 import { StatusBadge, slotAccent } from '@/components/shared/status-badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/misc'
-import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/input'
 import { EmptyState } from '@/components/ui/misc'
 import { QuizRunner, QuizResult } from '@/features/quizzes/QuizRunner'
@@ -37,6 +39,7 @@ import { aiService } from '@/services/aiService'
 import { slotsForDate, studyMinutes } from '@/services/plannerService'
 import { ensureNotificationPermission, playChime, showNotification } from '@/lib/feedback'
 import { addMinutesToTime, cn, formatClock, formatDuration, longDate, todayISO } from '@/lib/utils'
+import { CalendarDoodle, CircleCrossDoodle, PencilDoodle, TickDoodle } from '@/components/shared/doodles'
 import type { Question, QuizAttempt, SlotStatus, StudySlot } from '@/types'
 
 function TimerRing({ remaining, total, paused }: { remaining: number; total: number; paused: boolean }) {
@@ -45,24 +48,22 @@ function TimerRing({ remaining, total, paused }: { remaining: number; total: num
   return (
     <div className="relative flex size-28 shrink-0 items-center justify-center">
       <svg viewBox="0 0 100 100" className="absolute inset-0 size-full -rotate-90">
-        <circle cx="50" cy="50" r="42" fill="none" stroke="hsl(var(--muted))" strokeWidth="7" />
+        <circle cx="50" cy="50" r="42" fill="none" stroke="hsl(var(--rule-hsl))" strokeWidth="6" />
         <circle
           cx="50"
           cy="50"
           r="42"
           fill="none"
-          stroke="hsl(var(--primary))"
-          strokeWidth="7"
+          stroke="hsl(var(--foreground))"
+          strokeWidth="6"
           strokeLinecap="round"
           strokeDasharray={`${progress * circumference} ${circumference}`}
           className="transition-all duration-500"
         />
       </svg>
       <div className="text-center">
-        <p className="font-display text-xl font-extrabold tabular-nums">{formatClock(remaining)}</p>
-        <p className="text-[9px] font-medium uppercase tracking-widest text-muted-foreground">
-          {paused ? 'Paused' : remaining === 0 ? 'Done' : 'Focus'}
-        </p>
+        <p className="font-display text-2xl font-bold tabular-nums">{formatClock(remaining)}</p>
+        <p className="text-sm text-muted-foreground">{paused ? 'Paused' : remaining === 0 ? 'Done' : 'Focus'}</p>
       </div>
     </div>
   )
@@ -199,7 +200,7 @@ export function TasksPage() {
   const allDone = totalCount > 0 && todaySlots.every((slot) => ['done', 'skipped'].includes(slot.status))
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <PageHeader
         eyebrow={longDate(new Date(), settings.language)}
         title={t('tasks.title')}
@@ -207,194 +208,176 @@ export function TasksPage() {
         actions={
           <>
             <Badge variant="secondary" className="hidden sm:inline-flex">
-              <CalendarClock className="size-3" /> {t('tasks.progress', { done: doneCount, total: totalCount })}
+              <CalendarClock className="size-3.5" /> {t('tasks.progress', { done: doneCount, total: totalCount })}
             </Badge>
             <Button variant="outline" size="sm" onClick={regeneratePlan}>
-              <RefreshCw className="size-3.5" /> {t('tasks.regenerate')}
+              <RefreshCw className="size-4" /> {t('tasks.regenerate')}
             </Button>
           </>
         }
       />
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 border-y-2 border-dashed border-border sm:grid-cols-4 sm:divide-x-2 sm:divide-dashed sm:divide-border">
         {[
-          { label: t('tasks.progress', { done: doneCount, total: totalCount }), value: `${doneCount}/${totalCount}`, tone: 'text-primary' },
-          { label: t('dashboard.studyTime'), value: formatDuration(focusMinutes), tone: 'text-info' },
-          { label: t('plan.scheduled'), value: todaySlots.filter((slot) => slot.status === 'scheduled').length, tone: 'text-muted-foreground' },
-          { label: t('slotStatus.missed'), value: todaySlots.filter((slot) => slot.status === 'missed').length, tone: 'text-destructive' },
-        ].map((stat) => (
-          <Card key={stat.label}>
-            <CardContent className="p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{stat.label}</p>
-              <p className={cn('mt-1 font-display text-2xl font-extrabold', stat.tone)}>{stat.value}</p>
-            </CardContent>
-          </Card>
+          { label: t('tasks.progress', { done: doneCount, total: totalCount }), value: `${doneCount}/${totalCount}` },
+          { label: t('dashboard.studyTime'), value: formatDuration(focusMinutes) },
+          { label: t('plan.scheduled'), value: String(todaySlots.filter((slot) => slot.status === 'scheduled').length) },
+          { label: t('slotStatus.missed'), value: String(todaySlots.filter((slot) => slot.status === 'missed').length) },
+        ].map((stat, index) => (
+          <div key={stat.label} className="px-1 py-3 sm:px-4">
+            <p className="text-sm text-muted-foreground">{stat.label}</p>
+            <p className={cn('font-display text-3xl font-bold leading-none', index === 3 && 'text-destructive')}>{stat.value}</p>
+          </div>
         ))}
       </div>
 
       {allDone && (
-        <div className="flex items-center gap-3 rounded-2xl border border-success/25 bg-success/5 p-4">
-          <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-success/15 text-success">
-            <CheckCircle2 className="size-5" />
-          </span>
+        <div className="flex items-center gap-3 border-2 border-foreground bg-accent/55 px-4 py-3">
+          <TickDoodle className="size-7 shrink-0" />
           <div>
-            <p className="text-sm font-bold">{t('tasks.allDoneTitle')}</p>
-            <p className="text-xs text-muted-foreground">{t('tasks.allDoneDesc')}</p>
+            <p className="font-display text-xl font-bold">{t('tasks.allDoneTitle')}</p>
+            <p className="text-base text-muted-foreground">{t('tasks.allDoneDesc')}</p>
           </div>
         </div>
       )}
 
-      <div className="grid gap-4">
+      <div className="space-y-4">
         {todaySlots.length === 0 && (
-          <Card>
+          <div className="border-y-2 border-dashed border-border py-8">
             <EmptyState
-              icon={CalendarClock}
+              icon={CalendarDoodle}
               title={t('tasks.noSlotsTitle')}
               description={t('tasks.noSlotsDesc')}
               action={
                 <Button onClick={regeneratePlan}>
-                  <Sparkles className="size-4" /> {t('tasks.regenerate')}
+                  <PencilDoodle className="size-5" /> {t('tasks.regenerate')}
                 </Button>
               }
             />
-          </Card>
+          </div>
         )}
 
-        <AnimatePresence initial={false}>
-          {todaySlots.map((slot, index) => {
-            const subject = subjects.find((item) => item.id === slot.subjectId)
-            const slotTopics = topics.filter((topic) => slot.topicIds.includes(topic.id))
-            const isTimerSlot = timer?.slotId === slot.id
-            const isRunning = isTimerSlot && slot.status === 'running'
-            const linkedAttempt = slot.quizAttemptId ? attempts.find((attempt) => attempt.id === slot.quizAttemptId) : undefined
-            const actionable = ['scheduled', 'running'].includes(slot.status)
-            return (
-              <motion.div
-                key={slot.id}
-                layout
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: Math.min(index * 0.03, 0.2) }}
-              >
-                <Card className={cn('overflow-hidden border-l-4', slotAccent(slot.status, slot.source))}>
-                  <CardContent className="p-4 sm:p-5">
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-                      <div className="flex min-w-0 flex-1 gap-3">
-                        <span
-                          className="flex size-11 shrink-0 items-center justify-center rounded-xl text-[11px] font-bold text-white shadow-sm"
-                          style={{ backgroundColor: subject?.color ?? '#6366f1' }}
-                        >
-                          {subject?.name.slice(0, 2).toUpperCase() ?? 'ST'}
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h2 className="truncate font-display text-base font-bold">{subject?.name ?? 'Study'}</h2>
-                            <StatusBadge status={slot.status} source={slot.source} />
-                            {isRunning && (
-                              <Badge variant="default">
-                                <Zap className="size-3" /> Live
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
-                            <span className="inline-flex items-center gap-1">
-                              <Clock className="size-3" /> {slot.start}–{addMinutesToTime(slot.start, slot.duration)}
-                            </span>
-                            <span>·</span>
-                            <span>{slot.duration} {t('common.minutes')}</span>
-                            <span>·</span>
-                            <span>{statusCopy(slot.status)}</span>
-                          </p>
-                          {slotTopics.length > 0 && (
-                            <div className="mt-2 flex flex-wrap gap-1.5">
-                              {slotTopics.map((topic) => (
-                                <span
-                                  key={topic.id}
-                                  className="rounded-md bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
-                                >
-                                  {topic.name}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                          {slot.status === 'skipped' && slot.skipReason && (
-                            <p className="mt-2 rounded-lg bg-warning/10 px-2.5 py-1.5 text-[11px] text-warning">
-                              {slot.skipReason}
-                            </p>
-                          )}
-                          {slot.status === 'done' && (
-                            <p className="mt-2 text-[11px] font-medium text-success">
-                              {linkedAttempt
-                                ? `Check-in quiz: ${linkedAttempt.scorePercent}% (${linkedAttempt.correctCount}/${linkedAttempt.total})`
-                                : 'Completed — topics marked covered.'}
-                            </p>
-                          )}
-                          {slot.status === 'missed' && (
-                            <p className="mt-2 text-[11px] font-medium text-destructive">
-                              Topics re-queued into upcoming slots.
-                            </p>
-                          )}
-                        </div>
-                      </div>
-
-                      {isRunning && timer && (
-                        <div className="flex items-center gap-3 rounded-xl bg-muted/40 p-2 sm:mr-2">
-                          <TimerRing remaining={remaining} total={timer.totalSec} paused={timer.paused} />
-                          <div className="space-y-1.5">
-                            <Button
-                              size="sm"
-                              variant={timer.paused ? 'default' : 'outline'}
-                              onClick={() => (timer.paused ? resumeTimer() : pauseTimer())}
-                            >
-                              {timer.paused ? <Play className="size-3.5" /> : <Pause className="size-3.5" />}
-                              {timer.paused ? t('common.resume') : t('common.pause')}
-                            </Button>
-                            <Button size="sm" variant="outline" onClick={() => setQuizSlotId(slot.id)}>
-                              <Check className="size-3.5" /> Quiz & finish
-                            </Button>
-                          </div>
-                        </div>
+        {todaySlots.map((slot) => {
+          const subject = subjects.find((item) => item.id === slot.subjectId)
+          const slotTopics = topics.filter((topic) => slot.topicIds.includes(topic.id))
+          const isTimerSlot = timer?.slotId === slot.id
+          const isRunning = isTimerSlot && slot.status === 'running'
+          const linkedAttempt = slot.quizAttemptId ? attempts.find((attempt) => attempt.id === slot.quizAttemptId) : undefined
+          const actionable = ['scheduled', 'running'].includes(slot.status)
+          return (
+            <article
+              key={slot.id}
+              className={cn('paper-card border-l-4 p-4 sm:p-5', slotAccent(slot.status, slot.source), slot.status === 'missed' && 'slot-missed')}
+            >
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+                <div className="flex min-w-0 flex-1 gap-3">
+                  <span className="flex size-11 shrink-0 items-center justify-center rounded-[3px_8px_4px_7px] border-2 border-foreground font-display text-base font-bold">
+                    {subject?.name.slice(0, 2).toUpperCase() ?? 'ST'}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h2 className="slot-title truncate font-display text-xl font-bold">{subject?.name ?? 'Study'}</h2>
+                      <StatusBadge status={slot.status} source={slot.source} />
+                      {isRunning && (
+                        <Badge variant="accent">
+                          <PencilDoodle className="size-3.5" /> In focus
+                        </Badge>
                       )}
-
-                      <div className="flex flex-wrap items-center gap-1.5 sm:justify-end">
-                        {actionable && !isRunning && (
-                          <Button size="sm" onClick={() => startFocus(slot)}>
-                            <Play className="size-3.5" /> {t('tasks.start')}
-                          </Button>
-                        )}
-                        {actionable && (
-                          <>
-                            <Button size="sm" variant="outline" onClick={() => openContent(slot)}>
-                              <FileText className="size-3.5" /> {t('tasks.content')}
-                            </Button>
-                            <Button size="sm" variant="outline" onClick={() => setSkipTarget(slot)}>
-                              <SkipForward className="size-3.5" /> {t('tasks.skip')}
-                            </Button>
-                            <Button size="sm" variant="success" onClick={() => setQuizSlotId(slot.id)}>
-                              <Check className="size-3.5" /> {t('tasks.done')}
-                            </Button>
-                          </>
-                        )}
-                        {!actionable && (
-                          <Button size="sm" variant="ghost" asChild>
-                            <Link to={`/subjects/${slot.subjectId}`}>
-                              <BookOpen className="size-3.5" /> {t('common.open')}
-                            </Link>
-                          </Button>
-                        )}
-                      </div>
                     </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )
-          })}
-        </AnimatePresence>
+                    <p className="slot-meta mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-muted-foreground">
+                      <span className="inline-flex items-center gap-1">
+                        <Clock className="size-3.5" /> {slot.start}–{addMinutesToTime(slot.start, slot.duration)}
+                      </span>
+                      <span>·</span>
+                      <span>
+                        {slot.duration} {t('common.minutes')}
+                      </span>
+                      <span>·</span>
+                      <span>{statusCopy(slot.status)}</span>
+                    </p>
+                    {slotTopics.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
+                        {slotTopics.map((topic) => (
+                          <span key={topic.id} className="border-b-2 border-dashed border-border text-sm">
+                            {topic.name}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {slot.status === 'skipped' && slot.skipReason && (
+                      <p className="mt-2 border-l-2 border-[var(--margin-line)] pl-2 text-sm text-muted-foreground">
+                        {slot.skipReason}
+                      </p>
+                    )}
+                    {slot.status === 'done' && (
+                      <p className="mt-2 flex items-center gap-1.5 text-sm text-success">
+                        <Check className="size-4" />
+                        {linkedAttempt
+                          ? `Check-in quiz: ${linkedAttempt.scorePercent}% (${linkedAttempt.correctCount}/${linkedAttempt.total})`
+                          : 'Completed — topics marked covered.'}
+                      </p>
+                    )}
+                    {slot.status === 'missed' && (
+                      <p className="mt-2 text-sm text-destructive">Topics moved into upcoming slots.</p>
+                    )}
+                  </div>
+                </div>
+
+                {isRunning && timer && (
+                  <div className="flex items-center gap-3 border-2 border-foreground bg-card p-2 sm:mr-2">
+                    <TimerRing remaining={remaining} total={timer.totalSec} paused={timer.paused} />
+                    <div className="space-y-1.5">
+                      <Button
+                        size="sm"
+                        variant={timer.paused ? 'default' : 'outline'}
+                        onClick={() => (timer.paused ? resumeTimer() : pauseTimer())}
+                      >
+                        {timer.paused ? <Play className="size-3.5" /> : <Pause className="size-3.5" />}
+                        {timer.paused ? t('common.resume') : t('common.pause')}
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => setQuizSlotId(slot.id)}>
+                        <Check className="size-3.5" /> Quiz & finish
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex flex-wrap items-center gap-1.5 sm:justify-end">
+                  {actionable && !isRunning && (
+                    <Button size="sm" onClick={() => startFocus(slot)}>
+                      <Play className="size-3.5" /> {t('tasks.start')}
+                    </Button>
+                  )}
+                  {actionable && (
+                    <>
+                      <Button size="sm" variant="outline" onClick={() => openContent(slot)}>
+                        <FileText className="size-3.5" /> {t('tasks.content')}
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => setSkipTarget(slot)}>
+                        <SkipForward className="size-3.5" /> {t('tasks.skip')}
+                      </Button>
+                      <Button size="sm" variant="success" onClick={() => setQuizSlotId(slot.id)}>
+                        <Check className="size-3.5" /> {t('tasks.done')}
+                      </Button>
+                    </>
+                  )}
+                  {!actionable && (
+                    <Button size="sm" variant="ghost" asChild>
+                      <Link to={`/subjects/${slot.subjectId}`}>
+                        <BookOpen className="size-4" /> {t('common.open')}
+                      </Link>
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </article>
+          )
+        })}
       </div>
 
-      <div className="flex items-center justify-between rounded-xl bg-muted/40 px-3 py-2.5 text-[11px] text-muted-foreground">
+      <div className="flex flex-col gap-1 border-y-2 border-dashed border-border py-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
         <span className="flex items-center gap-1.5">
-          <Timer className="size-3.5" /> {t('tasks.startHint')}
+          <Timer className="size-4" /> {t('tasks.startHint')}
         </span>
         <span>{t('tasks.autoMissed')}</span>
       </div>
@@ -402,9 +385,9 @@ export function TasksPage() {
       <Dialog open={Boolean(contentSlot)} onOpenChange={(open) => !open && setContentSlot(null)}>
         <DialogContent size="lg">
           <DialogHeader>
-            <div className="mb-1 flex items-center gap-2">
+            <div className="mb-1 flex flex-wrap items-center gap-2">
               <Badge variant="default">
-                <BookOpen className="size-3" /> {t('tasks.slotContent')}
+                <BookOpen className="size-3.5" /> {t('tasks.slotContent')}
               </Badge>
               {contentSlot && (
                 <Badge variant="outline">
@@ -429,25 +412,25 @@ export function TasksPage() {
               </div>
             ) : content ? (
               <>
-                <div className="rounded-xl border border-primary/20 bg-primary-soft/50 p-4">
-                  <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-primary">
-                    <Sparkles className="size-3.5" /> {t('tasks.aiExplainer')}
+                <div className="border-l-4 border-accent pl-3">
+                  <p className="flex items-center gap-1.5 font-display text-lg font-bold">
+                    <PencilDoodle className="size-5" /> {t('tasks.aiExplainer')}
                   </p>
-                  <p className="mt-2 text-sm leading-relaxed">{content.explainer}</p>
+                  <p className="mt-2 leading-8">{content.explainer}</p>
                   <ul className="mt-3 space-y-1.5">
                     {content.keyPoints.map((point) => (
-                      <li key={point} className="flex gap-2 text-xs leading-relaxed text-muted-foreground">
-                        <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 text-primary" /> {point}
+                      <li key={point} className="flex gap-2 text-base leading-8 text-muted-foreground">
+                        <Check className="mt-2 size-4 shrink-0" /> {point}
                       </li>
                     ))}
                   </ul>
-                  <p className="mt-3 rounded-lg bg-card/70 px-3 py-2 text-xs font-medium">
-                    <Lightbulb className="mr-1 inline size-3.5 text-warning" /> {content.practice}
+                  <p className="mt-3 border-t-2 border-dashed border-border pt-2 text-base">
+                    <Lightbulb className="mr-1 inline size-4" /> {content.practice}
                   </p>
                 </div>
               </>
             ) : (
-              <p className="rounded-xl bg-muted/50 p-4 text-sm text-muted-foreground">
+              <p className="border-y-2 border-dashed border-border py-3 text-base text-muted-foreground">
                 The explainer is unavailable right now, but your uploads and notes are below.
               </p>
             )}
@@ -455,26 +438,23 @@ export function TasksPage() {
             {contentSlot && (
               <>
                 <div>
-                  <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">{t('tasks.yourUploads')}</p>
+                  <p className="mb-2 font-display text-lg font-bold">{t('tasks.yourUploads')}</p>
                   {uploads.filter((upload) => upload.subjectId === contentSlot.subjectId).length === 0 ? (
-                    <div className="rounded-xl border border-dashed border-border p-4 text-center">
-                      <UploadCloud className="mx-auto size-5 text-muted-foreground/50" />
-                      <p className="mt-1 text-xs font-medium">{t('tasks.noContent')}</p>
+                    <div className="border-2 border-dashed border-border p-4 text-center">
+                      <p className="text-base font-medium">{t('tasks.noContent')}</p>
                       <Button variant="soft" size="sm" className="mt-2" asChild>
                         <Link to={`/subjects/${contentSlot.subjectId}`}>{t('subjects.uploadCta')}</Link>
                       </Button>
                     </div>
                   ) : (
-                    <ul className="space-y-1.5">
+                    <ul>
                       {uploads
                         .filter((upload) => upload.subjectId === contentSlot.subjectId)
                         .map((upload) => (
-                          <li key={upload.id} className="rounded-lg border border-border bg-background/60 px-3 py-2">
-                            <p className="text-xs font-semibold">{upload.name}</p>
+                          <li key={upload.id} className="border-b-2 border-dashed border-border py-2">
+                            <p className="text-base font-semibold">{upload.name}</p>
                             {upload.noteText && (
-                              <p className="mt-0.5 line-clamp-2 text-[10px] leading-relaxed text-muted-foreground">
-                                {upload.noteText}
-                              </p>
+                              <p className="mt-0.5 line-clamp-2 text-sm leading-6 text-muted-foreground">{upload.noteText}</p>
                             )}
                           </li>
                         ))}
@@ -482,9 +462,9 @@ export function TasksPage() {
                   )}
                 </div>
                 <div>
-                  <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">{t('tasks.aiNotes')}</p>
+                  <p className="mb-2 font-display text-lg font-bold">{t('tasks.aiNotes')}</p>
                   {generated.filter((item) => item.subjectId === contentSlot.subjectId).length === 0 ? (
-                    <p className="rounded-xl bg-muted/40 px-3 py-3 text-xs text-muted-foreground">
+                    <p className="border-y-2 border-dashed border-border py-3 text-base text-muted-foreground">
                       Generate notes from this subject to see them here.
                     </p>
                   ) : (
@@ -492,9 +472,9 @@ export function TasksPage() {
                       .filter((item) => item.subjectId === contentSlot.subjectId)
                       .slice(0, 3)
                       .map((item) => (
-                        <div key={item.id} className="mb-1.5 rounded-lg border border-border bg-background/60 px-3 py-2">
-                          <p className="text-xs font-semibold">{item.title}</p>
-                          <p className="mt-0.5 line-clamp-2 text-[10px] text-muted-foreground">{item.body.replace(/[#*]/g, '')}</p>
+                        <div key={item.id} className="mb-2 border-b-2 border-dashed border-border pb-2">
+                          <p className="font-semibold">{item.title}</p>
+                          <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">{item.body.replace(/[#*]/g, '')}</p>
                         </div>
                       ))
                   )}
@@ -528,14 +508,14 @@ export function TasksPage() {
       >
         <DialogContent size="sm" className="sm:max-w-md">
           <DialogHeader>
-            <div className="mb-1 flex size-11 items-center justify-center rounded-xl bg-warning/10 text-warning">
-              <SkipForward className="size-5" />
+            <div className="mb-1 flex size-11 items-center justify-center border-2 border-foreground">
+              <CircleCrossDoodle className="size-6 text-[var(--margin-line)]" />
             </div>
             <DialogTitle>{t('tasks.skipTitle')}</DialogTitle>
             <DialogDescription>{t('tasks.skipDesc')}</DialogDescription>
           </DialogHeader>
           <DialogBody>
-            <label className="text-sm font-medium" htmlFor="skip-reason">
+            <label className="text-base font-semibold" htmlFor="skip-reason">
               {t('tasks.skipReason')}
             </label>
             <Textarea
@@ -580,8 +560,8 @@ export function TasksPage() {
           {quizLoading || !quizQuestions ? (
             <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
               <Loader2 className="size-8 animate-spin text-primary" />
-              <p className="text-sm font-semibold">{t('quizzes.generating')}</p>
-              <p className="text-xs text-muted-foreground">{t('quizzes.slotsQuizDesc')}</p>
+              <p className="font-semibold">{t('quizzes.generating')}</p>
+              <p className="text-sm text-muted-foreground">{t('quizzes.slotsQuizDesc')}</p>
             </div>
           ) : quizAttempt ? (
             <QuizResult
@@ -613,19 +593,17 @@ export function TasksPage() {
         </DialogContent>
       </Dialog>
 
-      <Card className="border-dashed bg-transparent">
-        <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Sparkles className="size-4 text-violet-500" />
-            {t('quizzes.slotsQuizDesc')}
-          </div>
-          <Button variant="outline" size="sm" asChild>
-            <Link to="/quizzes">
-              <Zap className="size-3.5" /> {t('dashboard.takeQuiz')}
-            </Link>
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="flex flex-col gap-3 border-2 border-dashed border-foreground/40 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-2 text-base text-muted-foreground">
+          <PencilDoodle className="size-5" />
+          {t('quizzes.slotsQuizDesc')}
+        </div>
+        <Button variant="outline" size="sm" asChild>
+          <Link to="/quizzes">
+            <BookOpen className="size-4" /> {t('dashboard.takeQuiz')}
+          </Link>
+        </Button>
+      </div>
     </div>
   )
 }

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import { Sidebar } from '@/components/layout/sidebar'
 import { Header } from '@/components/layout/header'
 import { MobileNav } from '@/components/layout/mobile-nav'
@@ -19,7 +18,6 @@ export function AppShell() {
       return false
     }
   })
-  const examActive = useAppStore((state) => state.examMode.active)
   const timer = useAppStore((state) => state.timer)
 
   useEffect(() => {
@@ -53,24 +51,16 @@ export function AppShell() {
   }, [location.pathname])
 
   return (
-    <div className="relative min-h-dvh overflow-x-hidden bg-background">
-      {examActive && (
-        <div className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-b from-violet-500/[0.05] via-transparent to-transparent" />
-      )}
+    <div className="relative min-h-dvh overflow-x-clip bg-background">
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((value) => !value)} />
       <div className={cn('transition-[padding] duration-300', collapsed ? 'md:pl-[84px]' : 'md:pl-[264px]')}>
         <Header />
-        <main className="mx-auto w-full max-w-[1240px] px-4 pb-32 pt-4 sm:px-6 md:pb-12 md:pt-6">
+        <main className="ruled-page mx-auto w-full max-w-[1240px] px-4 pb-32 pt-5 sm:px-6 md:pb-12 md:pt-7">
           <DemoBanner />
           <ExamModeBanner />
-          <motion.div
-            key={location.pathname}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.25, ease: 'easeOut' }}
-          >
+          <div>
             <Outlet />
-          </motion.div>
+          </div>
         </main>
       </div>
       <MobileNav />

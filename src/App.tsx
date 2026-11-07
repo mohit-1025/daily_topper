@@ -8,6 +8,7 @@ import { Toaster } from '@/components/ui/toast'
 import { LandingPage } from '@/features/landing/LandingPage'
 import { AuthPage } from '@/features/auth/AuthPage'
 import { OnboardingPage } from '@/features/onboarding/OnboardingPage'
+import { PublicShell } from '@/features/public/PublicShell'
 import { NotFoundPage } from '@/features/not-found/NotFoundPage'
 import { useAppStore } from '@/store/useAppStore'
 
@@ -38,6 +39,16 @@ const ExamPage = lazy(() =>
 const SettingsPage = lazy(() =>
   import('@/features/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })),
 )
+const AboutPage = lazy(() =>
+  import('@/features/public/AboutPage').then((m) => ({ default: m.AboutPage })),
+)
+const FaqPage = lazy(() => import('@/features/public/FaqPage').then((m) => ({ default: m.FaqPage })))
+const PrivacyPage = lazy(() =>
+  import('@/features/public/PrivacyPage').then((m) => ({ default: m.PrivacyPage })),
+)
+const TermsPage = lazy(() =>
+  import('@/features/public/TermsPage').then((m) => ({ default: m.TermsPage })),
+)
 
 function PageFallback() {
   return (
@@ -56,6 +67,24 @@ function PageFallback() {
 function LazyPages() {
   return (
     <Suspense fallback={<PageFallback />}>
+      <Outlet />
+    </Suspense>
+  )
+}
+
+function PublicPageFallback() {
+  return (
+    <div className="mx-auto w-full max-w-5xl space-y-4 px-4 pt-12 sm:px-6" aria-busy="true" aria-label="Loading page">
+      <Skeleton className="h-6 w-40" />
+      <Skeleton className="h-10 w-72 max-w-full" />
+      <Skeleton className="h-48 w-full" />
+    </div>
+  )
+}
+
+function LazyPublicPages() {
+  return (
+    <Suspense fallback={<PublicPageFallback />}>
       <Outlet />
     </Suspense>
   )
@@ -82,7 +111,6 @@ function AuthRoute() {
 export default function App() {
   const hydrated = useAppStore((state) => state.hydrated)
   const session = useAppStore((state) => state.session)
-  const theme = useAppStore((state) => state.settings.theme)
   const language = useAppStore((state) => state.settings.language)
   const { i18n } = useTranslation()
   const booted = useRef(false)
@@ -92,19 +120,6 @@ export default function App() {
     booted.current = true
     void useAppStore.getState().hydrate()
   }, [])
-
-  useEffect(() => {
-    const root = document.documentElement
-    const media = window.matchMedia('(prefers-color-scheme: dark)')
-    const apply = () => {
-      const dark = theme === 'dark' || (theme === 'system' && media.matches)
-      root.classList.toggle('dark', dark)
-      root.style.colorScheme = dark ? 'dark' : 'light'
-    }
-    apply()
-    media.addEventListener('change', apply)
-    return () => media.removeEventListener('change', apply)
-  }, [theme])
 
   useEffect(() => {
     if (i18n.language !== language) void i18n.changeLanguage(language)
@@ -123,6 +138,14 @@ export default function App() {
       <Routes>
         <Route path="/" element={<HomeRoute />} />
         <Route path="/auth" element={<AuthRoute />} />
+        <Route element={<PublicShell />}>
+          <Route element={<LazyPublicPages />}>
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/faq" element={<FaqPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/terms" element={<TermsPage />} />
+          </Route>
+        </Route>
         <Route element={<RequireAuth />}>
           <Route path="/onboarding" element={<OnboardingPage />} />
           <Route element={<AppShell />}>
@@ -136,7 +159,6 @@ export default function App() {
               <Route path="/quizzes" element={<QuizzesPage />} />
               <Route path="/exam" element={<ExamPage />} />
               <Route path="/settings" element={<SettingsPage />} />
-              <Route path="*" element={<NotFoundPage />} />
             </Route>
           </Route>
         </Route>

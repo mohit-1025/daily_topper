@@ -12,15 +12,12 @@ import {
   Loader2,
   Play,
   RotateCcw,
-  Sparkles,
   Target,
   Trophy,
-  Zap,
 } from 'lucide-react'
 import { PageHeader } from '@/components/shared/page-header'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { EmptyState, Progress } from '@/components/ui/misc'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -29,6 +26,7 @@ import { QuizRunner, QuizResult } from '@/features/quizzes/QuizRunner'
 import { useAppStore } from '@/store/useAppStore'
 import { aiService } from '@/services/aiService'
 import { clamp, cn, formatClock, prettyDate } from '@/lib/utils'
+import { CalendarDoodle, PencilDoodle, TickDoodle } from '@/components/shared/doodles'
 import type { AIReport, Difficulty, Question, QuizAttempt } from '@/types'
 
 interface ActiveQuiz {
@@ -44,6 +42,9 @@ interface ActiveQuiz {
 function scoreVariant(score: number) {
   return score >= 70 ? 'success' : score >= 40 ? 'warning' : 'destructive'
 }
+
+const choiceClass =
+  'flex min-h-11 items-center justify-center gap-2 rounded-[5px_11px_6px_9px] border-2 px-3 text-base font-semibold transition-[background-color,box-shadow] duration-150'
 
 export function QuizzesPage() {
   const { t } = useTranslation()
@@ -224,13 +225,13 @@ export function QuizzesPage() {
 
   if (!subjects.length) {
     return (
-      <div className="space-y-5">
+      <div className="space-y-6">
         <PageHeader title={t('quizzes.title')} subtitle={t('quizzes.subtitle')} />
-        <Card>
+        <div className="border-y-2 border-dashed border-border py-10">
           <EmptyState
-            icon={BookOpen}
+            icon={CalendarDoodle}
             title="Add a subject first"
-            description="Quizzes are generated from the topics inside your subjects. Add one to get started."
+            description="Quizzes are built from the topics inside your subjects. Add one to get started."
             action={
               <Button asChild>
                 <Link to="/subjects?add=1">
@@ -239,14 +240,14 @@ export function QuizzesPage() {
               </Button>
             }
           />
-        </Card>
+        </div>
       </div>
     )
   }
 
   if (active) {
     return (
-      <div className="flex min-h-[calc(100dvh-9rem)] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
+      <div className="paper-card flex min-h-[calc(100dvh-9rem)] flex-col overflow-hidden">
         <QuizRunner
           questions={active.questions}
           title={active.title}
@@ -268,7 +269,7 @@ export function QuizzesPage() {
 
   if (attempt) {
     return (
-      <div className="flex min-h-[calc(100dvh-9rem)] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
+      <div className="paper-card flex min-h-[calc(100dvh-9rem)] flex-col overflow-hidden">
         <QuizResult
           attempt={attempt}
           report={report}
@@ -283,7 +284,7 @@ export function QuizzesPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <PageHeader
         title={t('quizzes.title')}
         subtitle={t('quizzes.subtitle')}
@@ -291,11 +292,11 @@ export function QuizzesPage() {
         actions={
           <>
             <Badge variant="secondary" className="hidden sm:inline-flex">
-              <Trophy className="size-3" /> Avg. {avgScore}%
+              <Trophy className="size-3.5" /> Avg. {avgScore}%
             </Badge>
             <Button variant="outline" size="sm" asChild>
               <Link to="/progress">
-                <Target className="size-3.5" /> View analytics
+                <Target className="size-4" /> View progress
               </Link>
             </Button>
           </>
@@ -305,91 +306,71 @@ export function QuizzesPage() {
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="grid w-full grid-cols-2 sm:inline-flex sm:w-auto">
           <TabsTrigger value="create">
-            <Sparkles className="mr-1.5 size-4" /> {t('quizzes.setup')}
+            <PencilDoodle className="mr-1.5 size-4" /> {t('quizzes.setup')}
           </TabsTrigger>
           <TabsTrigger value="history">
             <History className="mr-1.5 size-4" /> {t('quizzes.history')}
             {attempts.length > 0 && (
-              <span className="ml-1.5 rounded-full bg-primary/10 px-1.5 text-[10px] font-bold text-primary">
-                {attempts.length}
-              </span>
+              <span className="ml-1.5 border-2 border-foreground px-1.5 text-xs font-bold">{attempts.length}</span>
             )}
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="create">
-          <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
-            <div className="space-y-4">
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <span className="flex size-6 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">
-                      1
-                    </span>
-                    {t('quizzes.selectSubjects')}
-                  </CardTitle>
-                  <CardDescription>Pick one or more subjects for a mixed paper.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    {subjects.map((subject) => {
-                      const selected = subjectIds.includes(subject.id)
-                      const countForSubject = topics.filter((topic) => topic.subjectId === subject.id).length
-                      return (
-                        <button
-                          key={subject.id}
-                          type="button"
-                          onClick={() => toggleSubject(subject.id)}
-                          aria-pressed={selected}
+          <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+            <div className="paper-card p-4 sm:p-6">
+              <section>
+                <h3 className="font-display text-2xl font-bold">
+                  1. {t('quizzes.selectSubjects')}
+                </h3>
+                <p className="text-base text-muted-foreground">Pick one or more subjects for a mixed paper.</p>
+                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                  {subjects.map((subject) => {
+                    const selected = subjectIds.includes(subject.id)
+                    const countForSubject = topics.filter((topic) => topic.subjectId === subject.id).length
+                    return (
+                      <button
+                        key={subject.id}
+                        type="button"
+                        onClick={() => toggleSubject(subject.id)}
+                        aria-pressed={selected}
+                        className={cn(
+                          choiceClass,
+                          'justify-start p-2.5 text-left',
+                          selected
+                            ? 'border-foreground bg-accent/55 shadow-[2px_2px_0_hsl(var(--foreground)/0.3)]'
+                            : 'border-border bg-card hover:border-foreground/50',
+                        )}
+                      >
+                        <span className="flex size-8 shrink-0 items-center justify-center rounded-[2px_6px_3px_5px] border-2 border-foreground text-xs font-bold">
+                          {subject.name.slice(0, 2).toUpperCase()}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate font-semibold">{subject.name}</span>
+                          <span className="block text-sm text-muted-foreground">
+                            {countForSubject} {t('common.topics').toLowerCase()}
+                          </span>
+                        </span>
+                        <span
                           className={cn(
-                            'flex min-h-11 items-center gap-2.5 rounded-xl border p-2.5 text-left transition-all',
-                            selected
-                              ? 'border-primary bg-primary-soft/70 shadow-sm'
-                              : 'border-border bg-card hover:border-primary/30 hover:bg-muted/40',
+                            'flex size-5 shrink-0 items-center justify-center rounded-[1px_4px_2px_3px] border-2',
+                            selected ? 'border-foreground bg-foreground text-primary-foreground' : 'border-border text-transparent',
                           )}
                         >
-                          <span
-                            className="flex size-8 shrink-0 items-center justify-center rounded-lg text-[10px] font-bold text-white"
-                            style={{ backgroundColor: subject.color }}
-                          >
-                            {subject.name.slice(0, 2).toUpperCase()}
-                          </span>
-                          <span className="min-w-0 flex-1">
-                            <span className="block truncate text-sm font-semibold">{subject.name}</span>
-                            <span className="block text-[10px] text-muted-foreground">
-                              {countForSubject} {t('common.topics').toLowerCase()}
-                            </span>
-                          </span>
-                          <span
-                            className={cn(
-                              'flex size-5 shrink-0 items-center justify-center rounded-full border',
-                              selected
-                                ? 'border-primary bg-primary text-primary-foreground'
-                                : 'border-border text-transparent',
-                            )}
-                          >
-                            <Check className="size-3" strokeWidth={3} />
-                          </span>
-                        </button>
-                      )
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
+                          <Check className="size-3" strokeWidth={3} />
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </section>
 
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <span className="flex size-6 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">
-                      2
-                    </span>
-                    {t('quizzes.selectTopics')}
-                  </CardTitle>
-                  <CardDescription>Leave everything unselected to quiz across all topics.</CardDescription>
-                </CardHeader>
-                <CardContent>
+              <section className="mt-5 border-t-2 border-dashed border-border pt-4">
+                <h3 className="font-display text-2xl font-bold">2. {t('quizzes.selectTopics')}</h3>
+                <p className="text-base text-muted-foreground">Leave everything unselected to quiz across all topics.</p>
+                <div className="mt-3">
                   {availableTopics.length === 0 ? (
-                    <p className="rounded-xl bg-muted/40 px-3 py-6 text-center text-sm text-muted-foreground">
+                    <p className="border-y-2 border-dashed border-border py-4 text-center text-base text-muted-foreground">
                       {t('quizzes.noTopics')}
                     </p>
                   ) : (
@@ -398,32 +379,33 @@ export function QuizzesPage() {
                         type="button"
                         onClick={() => setSelectedTopicIds([])}
                         className={cn(
-                          'flex min-h-9 items-center gap-1.5 rounded-lg border px-2.5 text-[11px] font-semibold transition-colors',
+                          'flex min-h-9 items-center gap-1.5 rounded-[4px_9px_5px_8px] border-2 px-2.5 text-sm font-semibold transition-colors',
                           selectedTopicIds.length === 0
-                            ? 'border-primary bg-primary text-primary-foreground'
-                            : 'border-border bg-card text-muted-foreground hover:bg-muted',
+                            ? 'border-foreground bg-foreground text-primary-foreground'
+                            : 'border-border bg-card text-muted-foreground hover:border-foreground/50',
                         )}
                       >
-                        <ListChecks className="size-3" /> {t('quizzes.allTopics')}
+                        <ListChecks className="size-3.5" /> {t('quizzes.allTopics')}
                       </button>
                       {availableTopics.map((topic) => {
                         const selected = selectedTopicIds.includes(topic.id)
-                        const subject = subjects.find((item) => item.id === topic.subjectId)
                         return (
                           <button
                             key={topic.id}
                             type="button"
                             onClick={() => toggleTopic(topic.id)}
                             className={cn(
-                              'flex min-h-9 items-center gap-1.5 rounded-lg border px-2.5 text-[11px] font-medium transition-colors',
+                              'flex min-h-9 items-center gap-1.5 rounded-[4px_9px_5px_8px] border-2 px-2.5 text-sm font-medium transition-colors',
                               selected
-                                ? 'border-primary bg-primary-soft text-primary'
-                                : 'border-border bg-card text-muted-foreground hover:bg-muted',
+                                ? 'border-foreground bg-accent/55'
+                                : 'border-border bg-card text-muted-foreground hover:border-foreground/50',
                             )}
                           >
                             <span
-                              className="size-2 rounded-full"
-                              style={{ backgroundColor: subject?.color ?? '#6366f1' }}
+                              className={cn(
+                                'size-2 rounded-[1px] border border-foreground',
+                                selected ? 'bg-foreground' : 'bg-transparent',
+                              )}
                             />
                             {topic.name}
                           </button>
@@ -431,23 +413,16 @@ export function QuizzesPage() {
                       })}
                     </div>
                   )}
-                  <p className="mt-2 text-[11px] text-muted-foreground">
+                  <p className="mt-2 text-sm text-muted-foreground">
                     {chosenTopics.length} of {availableTopics.length} topics selected
                   </p>
-                </CardContent>
-              </Card>
+                </div>
+              </section>
 
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <span className="flex size-6 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">
-                      3
-                    </span>
-                    {t('quizzes.timerMode')}
-                  </CardTitle>
-                  <CardDescription>Answer freely, race a clock, or go question-by-question.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
+              <section className="mt-5 border-t-2 border-dashed border-border pt-4">
+                <h3 className="font-display text-2xl font-bold">3. {t('quizzes.timerMode')}</h3>
+                <p className="text-base text-muted-foreground">Answer freely, race a clock, or go question by question.</p>
+                <div className="mt-3 space-y-4">
                   <div className="grid gap-2 sm:grid-cols-3">
                     {[
                       { value: 'none', label: t('quizzes.noTimer') },
@@ -458,11 +433,12 @@ export function QuizzesPage() {
                         key={option.value}
                         type="button"
                         onClick={() => setTimerMode(option.value as typeof timerMode)}
+                        aria-pressed={timerMode === option.value}
                         className={cn(
-                          'flex min-h-11 items-center justify-center gap-2 rounded-xl border px-3 text-sm font-semibold transition-colors',
+                          choiceClass,
                           timerMode === option.value
-                            ? 'border-primary bg-primary-soft text-primary'
-                            : 'border-border bg-card text-muted-foreground hover:bg-muted/40',
+                            ? 'border-foreground bg-accent/55 shadow-[2px_2px_0_hsl(var(--foreground)/0.3)]'
+                            : 'border-border bg-card text-muted-foreground hover:border-foreground/50',
                         )}
                       >
                         <Clock className="size-4" /> {option.label}
@@ -473,7 +449,7 @@ export function QuizzesPage() {
                   <div className="grid gap-3 sm:grid-cols-2">
                     {timerMode === 'total' && (
                       <div>
-                        <p className="mb-1.5 text-xs font-semibold text-muted-foreground">Total minutes</p>
+                        <p className="mb-1.5 text-base font-semibold text-muted-foreground">Total minutes</p>
                         <Select value={timerMinutes} onValueChange={setTimerMinutes}>
                           <SelectTrigger>
                             <SelectValue />
@@ -490,7 +466,7 @@ export function QuizzesPage() {
                     )}
                     {timerMode === 'per-question' && (
                       <div>
-                        <p className="mb-1.5 text-xs font-semibold text-muted-foreground">Seconds per question</p>
+                        <p className="mb-1.5 text-base font-semibold text-muted-foreground">Seconds per question</p>
                         <Select value={perQuestionSeconds} onValueChange={setPerQuestionSeconds}>
                           <SelectTrigger>
                             <SelectValue />
@@ -506,7 +482,7 @@ export function QuizzesPage() {
                       </div>
                     )}
                     <div>
-                      <p className="mb-1.5 text-xs font-semibold text-muted-foreground">{t('quizzes.difficulty')}</p>
+                      <p className="mb-1.5 text-base font-semibold text-muted-foreground">{t('quizzes.difficulty')}</p>
                       <Select value={difficulty} onValueChange={(value) => setDifficulty(value as Difficulty)}>
                         <SelectTrigger>
                           <SelectValue />
@@ -520,144 +496,127 @@ export function QuizzesPage() {
                       </Select>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </section>
             </div>
 
-            <Card className="h-fit lg:sticky lg:top-24">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Quiz summary</CardTitle>
-                <CardDescription>{t('quizzes.setupDesc')}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <p className="mb-1.5 text-xs font-semibold text-muted-foreground">{t('quizzes.count')}</p>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {['5', '10', '15', '20', 'custom'].map((value) => (
-                      <button
-                        key={value}
-                        type="button"
-                        onClick={() => setCountChoice(value)}
-                        className={cn(
-                          'min-h-9 rounded-lg border text-xs font-bold transition-colors',
-                          value === 'custom' && 'col-span-2',
-                          countChoice === value
-                            ? 'border-primary bg-primary text-primary-foreground'
-                            : 'border-border bg-card text-muted-foreground hover:bg-muted',
-                        )}
-                      >
-                        {value === 'custom' ? t('quizzes.customCount') : value}
-                      </button>
-                    ))}
-                  </div>
-                  {countChoice === 'custom' && (
-                    <Input
-                      type="number"
-                      min={1}
-                      max={50}
-                      value={customCount}
-                      onChange={(event) => setCustomCount(event.target.value)}
-                      className="mt-2"
-                      aria-label={t('quizzes.customCount')}
-                    />
-                  )}
+            <aside className="paper-card tape h-fit p-5 lg:sticky lg:top-24">
+              <h3 className="font-display text-2xl font-bold">Quiz summary</h3>
+              <p className="text-base text-muted-foreground">{t('quizzes.setupDesc')}</p>
+              <div className="mt-4">
+                <p className="mb-1.5 text-base font-semibold text-muted-foreground">{t('quizzes.count')}</p>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {['5', '10', '15', '20', 'custom'].map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setCountChoice(value)}
+                      className={cn(
+                        'min-h-9 rounded-[3px_7px_4px_6px] border-2 text-sm font-bold transition-colors',
+                        value === 'custom' && 'col-span-2',
+                        countChoice === value
+                          ? 'border-foreground bg-foreground text-primary-foreground'
+                          : 'border-border bg-card text-muted-foreground hover:border-foreground/50',
+                      )}
+                    >
+                      {value === 'custom' ? t('quizzes.customCount') : value}
+                    </button>
+                  ))}
                 </div>
+                {countChoice === 'custom' && (
+                  <Input
+                    type="number"
+                    min={1}
+                    max={50}
+                    value={customCount}
+                    onChange={(event) => setCustomCount(event.target.value)}
+                    className="mt-2"
+                    aria-label={t('quizzes.customCount')}
+                  />
+                )}
+              </div>
 
-                <div className="space-y-2 rounded-xl bg-muted/40 p-3 text-xs">
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">{t('common.subjects')}</span>
-                    <span className="font-bold">{subjectIds.length}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">{t('common.topics')}</span>
-                    <span className="font-bold">{chosenTopics.length}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">{t('common.questions')}</span>
-                    <span className="font-bold">{count}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">{t('quizzes.timer')}</span>
-                    <span className="font-bold">
-                      {timerMode === 'none'
-                        ? t('quizzes.noTimer')
-                        : timerMode === 'total'
-                          ? `${timerMinutes} min`
-                          : `${perQuestionSeconds}s`}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">{t('quizzes.difficulty')}</span>
-                    <span className="font-bold capitalize">{difficulty}</span>
-                  </div>
+              <dl className="mt-4 border-t-2 border-dashed border-border text-base">
+                <div className="flex items-center justify-between border-b border-dashed border-border py-1.5">
+                  <dt className="text-muted-foreground">{t('common.subjects')}</dt>
+                  <dd className="font-bold">{subjectIds.length}</dd>
                 </div>
+                <div className="flex items-center justify-between border-b border-dashed border-border py-1.5">
+                  <dt className="text-muted-foreground">{t('common.topics')}</dt>
+                  <dd className="font-bold">{chosenTopics.length}</dd>
+                </div>
+                <div className="flex items-center justify-between border-b border-dashed border-border py-1.5">
+                  <dt className="text-muted-foreground">{t('common.questions')}</dt>
+                  <dd className="font-bold">{count}</dd>
+                </div>
+                <div className="flex items-center justify-between border-b border-dashed border-border py-1.5">
+                  <dt className="text-muted-foreground">{t('quizzes.timer')}</dt>
+                  <dd className="font-bold">
+                    {timerMode === 'none' ? t('quizzes.noTimer') : timerMode === 'total' ? `${timerMinutes} min` : `${perQuestionSeconds}s`}
+                  </dd>
+                </div>
+                <div className="flex items-center justify-between border-b border-dashed border-border py-1.5">
+                  <dt className="text-muted-foreground">{t('quizzes.difficulty')}</dt>
+                  <dd className="font-bold capitalize">{difficulty}</dd>
+                </div>
+              </dl>
 
-                <Button className="w-full" onClick={generate} disabled={generating || !subjectIds.length || !chosenTopics.length}>
-                  {generating ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
-                  {generating ? t('quizzes.generating') : t('quizzes.generate')}
-                </Button>
-                <p className="flex items-start gap-1.5 text-[11px] leading-relaxed text-muted-foreground">
-                  <Zap className="mt-0.5 size-3 shrink-0 text-violet-500" />
-                  AI writes fresh questions from these topics, then uses your score to rebalance the plan.
-                </p>
-              </CardContent>
-            </Card>
+              <Button className="mt-4 w-full" onClick={generate} disabled={generating || !subjectIds.length || !chosenTopics.length}>
+                {generating ? <Loader2 className="size-4 animate-spin" /> : <Play className="size-4" />}
+                {generating ? t('quizzes.generating') : t('quizzes.generate')}
+              </Button>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                Every paper is built from these topics, and your score feeds back into the plan.
+              </p>
+            </aside>
           </div>
         </TabsContent>
 
         <TabsContent value="history">
           {attempts.length === 0 ? (
-            <Card>
+            <div className="border-y-2 border-dashed border-border py-10">
               <EmptyState
                 icon={History}
                 title={t('quizzes.historyEmpty')}
                 description={t('quizzes.historyEmptyDesc')}
                 action={
                   <Button onClick={() => setTab('create')}>
-                    <Sparkles className="size-4" /> {t('quizzes.generate')}
+                    <PencilDoodle className="size-5" /> {t('quizzes.generate')}
                   </Button>
                 }
               />
-            </Card>
+            </div>
           ) : (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 border-y-2 border-dashed border-border sm:grid-cols-4 sm:divide-x-2 sm:divide-dashed sm:divide-border">
                 {[
-                  { label: t('quizzes.historyTitle'), value: attempts.length, icon: ListChecks },
-                  { label: t('progress.avgScore'), value: `${avgScore}%`, icon: Target },
-                  { label: 'Best score', value: `${bestScore}%`, icon: Trophy },
-                  { label: 'Weak topics', value: weakTopicIds.length, icon: Sparkles },
+                  { label: t('quizzes.historyTitle'), value: String(attempts.length) },
+                  { label: t('progress.avgScore'), value: `${avgScore}%` },
+                  { label: 'Best score', value: `${bestScore}%` },
+                  { label: 'Weak topics', value: String(weakTopicIds.length) },
                 ].map((stat) => (
-                  <Card key={stat.label}>
-                    <CardContent className="p-3.5">
-                      <stat.icon className="mb-1 size-4 text-primary" />
-                      <p className="font-display text-xl font-extrabold">{stat.value}</p>
-                      <p className="text-[11px] text-muted-foreground">{stat.label}</p>
-                    </CardContent>
-                  </Card>
+                  <div key={stat.label} className="px-1 py-3 sm:px-4">
+                    <p className="font-display text-3xl font-bold leading-none">{stat.value}</p>
+                    <p className="text-sm text-muted-foreground">{stat.label}</p>
+                  </div>
                 ))}
               </div>
 
               {weakTopicIds.length > 0 && (
-                <div className="flex flex-col gap-3 rounded-2xl border border-primary/20 bg-primary-soft/40 p-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary">
-                      <Sparkles className="size-5" />
-                    </span>
-                    <div>
-                      <p className="text-sm font-bold">Weak topics found in your attempts</p>
-                      <p className="text-xs text-muted-foreground">
-                        Queue the {weakTopicIds.length} lowest-accuracy topics for your next slots.
-                      </p>
-                    </div>
+                <div className="flex flex-col gap-3 border-l-4 border-[var(--margin-line)] bg-accent/40 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="font-semibold">Weak topics found in your attempts</p>
+                    <p className="text-base text-muted-foreground">
+                      Queue the {weakTopicIds.length} lowest-accuracy topics for your next slots.
+                    </p>
                   </div>
-                  <Button variant="soft" size="sm" onClick={() => prioritiseTopics(weakTopicIds)}>
-                    <Sparkles className="size-3.5" /> {t('quizzes.addWeak')}
+                  <Button variant="outline" size="sm" onClick={() => prioritiseTopics(weakTopicIds)}>
+                    <PencilDoodle className="size-5" /> {t('quizzes.addWeak')}
                   </Button>
                 </div>
               )}
 
-              <div className="space-y-2">
+              <div className="paper-card p-4">
                 {attempts.map((item) => {
                   const wrong = item.questions.filter(
                     (question) => item.answers[question.id] !== question.answerIndex,
@@ -667,59 +626,50 @@ export function QuizzesPage() {
                     .filter(Boolean)
                     .join(' · ')
                   return (
-                    <Card key={item.id}>
-                      <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
-                        <span
-                          className={cn(
-                            'flex size-12 shrink-0 items-center justify-center rounded-xl text-sm font-extrabold text-white',
-                            item.scorePercent >= 70
-                              ? 'bg-success'
-                              : item.scorePercent >= 40
-                                ? 'bg-warning'
-                                : 'bg-destructive',
-                          )}
-                        >
-                          {item.scorePercent}%
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="truncate text-sm font-bold">{item.title}</p>
-                            <Badge variant={scoreVariant(item.scorePercent)}>
-                              {item.correctCount}/{item.total}
-                            </Badge>
-                            {item.slotId && <Badge variant="outline">Slot check-in</Badge>}
-                          </div>
-                          <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
-                            <span>{names || t('common.subject')}</span>
-                            <span>·</span>
-                            <span>{prettyDate(item.submittedAt.slice(0, 10))}</span>
-                            <span>·</span>
-                            <span className="inline-flex items-center gap-1">
-                              <Clock className="size-3" /> {formatClock(item.timeTakenSec)}
-                            </span>
-                            <span>·</span>
-                            <span className="capitalize">{item.difficulty}</span>
-                          </p>
-                          <Progress
-                            value={item.scorePercent}
-                            className="mt-2 h-1"
-                            indicatorClassName={
-                              item.scorePercent >= 70 ? 'bg-success' : item.scorePercent >= 40 ? 'bg-warning' : 'bg-destructive'
-                            }
-                          />
+                    <div
+                      key={item.id}
+                      className="flex flex-col gap-3 border-b-2 border-dashed border-border py-4 last:border-b-0 sm:flex-row sm:items-center"
+                    >
+                      <span
+                        className={cn(
+                          'flex size-14 shrink-0 items-center justify-center border-2 border-foreground font-display text-xl font-bold',
+                          item.scorePercent >= 70 ? 'bg-accent' : item.scorePercent >= 40 ? 'bg-secondary' : 'bg-destructive/10 text-destructive',
+                        )}
+                      >
+                        {item.scorePercent}%
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="truncate font-semibold">{item.title}</p>
+                          <Badge variant={scoreVariant(item.scorePercent)}>
+                            {item.correctCount}/{item.total}
+                          </Badge>
+                          {item.slotId && <Badge variant="outline">Slot check-in</Badge>}
                         </div>
-                        <div className="flex shrink-0 flex-wrap items-center gap-1.5">
-                          <Button variant="outline" size="sm" onClick={() => openAttempt(item)}>
-                            <Eye className="size-3.5" /> {t('quizzes.viewResult')}
+                        <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-muted-foreground">
+                          <span>{names || t('common.subject')}</span>
+                          <span>·</span>
+                          <span>{prettyDate(item.submittedAt.slice(0, 10))}</span>
+                          <span>·</span>
+                          <span className="inline-flex items-center gap-1">
+                            <Clock className="size-3.5" /> {formatClock(item.timeTakenSec)}
+                          </span>
+                          <span>·</span>
+                          <span className="capitalize">{item.difficulty}</span>
+                        </p>
+                        <Progress value={item.scorePercent} className="mt-2" />
+                      </div>
+                      <div className="flex shrink-0 flex-wrap items-center gap-1.5">
+                        <Button variant="outline" size="sm" onClick={() => openAttempt(item)}>
+                          <Eye className="size-4" /> {t('quizzes.viewResult')}
+                        </Button>
+                        {wrong > 0 && (
+                          <Button variant="ghost" size="sm" onClick={() => startRetry(item)}>
+                            <RotateCcw className="size-4" /> {t('common.retry')}
                           </Button>
-                          {wrong > 0 && (
-                            <Button variant="ghost" size="sm" onClick={() => startRetry(item)}>
-                              <RotateCcw className="size-3.5" /> {t('common.retry')}
-                            </Button>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
+                        )}
+                      </div>
+                    </div>
                   )
                 })}
               </div>
@@ -728,19 +678,17 @@ export function QuizzesPage() {
         </TabsContent>
       </Tabs>
 
-      <Card className="border-dashed bg-transparent">
-        <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Play className="size-4 text-primary" />
-            {t('quizzes.slotsQuizDesc')}
-          </div>
-          <Button variant="outline" size="sm" asChild>
-            <Link to="/tasks">
-              {t('nav.tasks')} <ArrowRight className="size-3.5" />
-            </Link>
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="flex flex-col gap-3 border-2 border-dashed border-foreground/40 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-2 text-base text-muted-foreground">
+          <TickDoodle className="size-5" />
+          {t('quizzes.slotsQuizDesc')}
+        </div>
+        <Button variant="outline" size="sm" asChild>
+          <Link to="/tasks">
+            {t('nav.tasks')} <ArrowRight className="size-4" />
+          </Link>
+        </Button>
+      </div>
     </div>
   )
 }
