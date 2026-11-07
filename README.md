@@ -1,12 +1,14 @@
-# Daily Topper
+# 📓 Daily Topper
 
-A study planner that turns a student's syllabus, confidence and exam dates into a daily plan that actually adapts. Built for the BharatCode Build League hackathon.
+**A study planner that turns a student's syllabus, confidence and exam dates into a daily plan that actually adapts.** 🇮🇳 Built for the **BharatCode Build League** hackathon. 🏆
 
-Daily Topper is a complete, demo-ready web app: a pre-loaded guest student (Riya), a real planner, quizzes that gate task completion, revision sheets, exam mode with backwards scheduling, progress analytics, six paper-notebook themes with matching study soundtracks, and six-language support. It runs with **zero setup** — no keys, no database, no build flags.
+Daily Topper is a complete, demo-ready web app: a pre-loaded guest student (Riya), a real planner, quizzes that gate task completion, revision sheets, exam mode with backwards scheduling, progress analytics, six paper-notebook themes with matching study soundtracks, and six-language support. It runs with **zero setup** — no keys, no database, no build flags. ✨
+
+![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=white&style=flat-square) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white&style=flat-square) ![Vite](https://img.shields.io/badge/Vite-8-646cff?logo=vite&logoColor=white&style=flat-square) ![License](https://img.shields.io/badge/License-MIT-22c55e?style=flat-square)
 
 ---
 
-## Quick start
+## 🚀 Quick start
 
 ```bash
 npm install
@@ -25,7 +27,7 @@ Node 20+ is recommended. There are no required environment variables.
 
 ---
 
-## 5-minute demo script
+## 🎬 5-minute demo script
 
 1. **Landing → Try as guest.** Riya's profile opens with a 6-day streak, 9 covered topics, quiz average 72%, and today's planned slots.
 2. **Daily Tasks → Start.** The timer keeps running across pages (and after reload). *Skip* asks for a reason and the planner rebalances. A slot can only be marked done after the 5-question quiz; the result persists on screen.
@@ -39,11 +41,11 @@ Node 20+ is recommended. There are no required environment variables.
 
 ---
 
-## What's inside
+## 🧭 What's inside
 
 | Area | Highlights |
 | --- | --- |
-| Auth | Email/password local accounts, prominent Guest mode, protected routes redirect to `/auth` |
+| Auth | Clerk sign-up with password and sign-in with a 6-digit email code, custom-built form, Guest mode, protected routes redirect to `/auth` |
 | Onboarding | 4 steps: identity, academics, preferences, subjects — then the first plan is generated |
 | Dashboard | Greeting, streak, goal progress, today's tasks, weak topics, exam countdown, quick actions |
 | Subjects | Add/delete subjects, confidence rating, detail page with files, study notes and topics |
@@ -54,7 +56,7 @@ Node 20+ is recommended. There are no required environment variables.
 | Exam Mode | Parse or enter a schedule, editable preview, backwards planning, archive, auto-end |
 | Settings | Profile, study preferences, language, reminders, export, reset, delete, logout |
 
-### Stack
+### 🧰 Stack
 
 React 19 + TypeScript + Vite, Tailwind CSS with CSS-variable tokens, hand-written shadcn-style components on Radix primitives, lucide-react icons, React Router, Zustand, Recharts, date-fns, Framer Motion, zod and react-i18next. PDF text extraction uses pdf.js.
 
@@ -73,7 +75,7 @@ api/ai.ts        serverless AI proxy (provider key stays server-side)
 
 ---
 
-## Zero-setup data layer
+## 🗂️ Zero-setup data layer
 
 `src/services/repository.ts` exposes one `AppRepository` interface with two adapters:
 
@@ -91,7 +93,7 @@ Persistence is debounced. Local keys:
 
 Local accounts are a demo convenience for zero-setup mode. With `VITE_CLERK_PUBLISHABLE_KEY` set, Clerk handles sign-up, email verification and sessions instead.
 
-### Clerk + Supabase setup
+### 🔐 Clerk + Supabase setup
 
 1. Copy the publishable key from the Clerk Dashboard into `VITE_CLERK_PUBLISHABLE_KEY`. `CLERK_SECRET_KEY` is server-side only — never expose it in a `VITE_` variable.
 2. In Clerk Dashboard → **Sessions → Customize session token**, add the claim `{ "role": "authenticated" }`; Supabase maps it to the `authenticated` Postgres role.
@@ -136,7 +138,7 @@ If Supabase is unreachable the session simply stays local; the app never hard-fa
 
 ---
 
-## AI integration
+## 🤖 AI integration
 
 Every AI call lives in **`src/services/aiService.ts`**. The browser never sees a provider key.
 
@@ -153,7 +155,7 @@ UI → aiService → POST /api/ai → serverless route → LLM
 
 AI surfaces: topic extraction, study content per subject/slot, quiz generation, improvement reports, revision sheets, exam schedule parsing, syllabus parsing, and daily-priority refinement.
 
-### Enabling real AI
+### ✨ Enabling real AI
 
 Copy `.env.example` to `.env.local`:
 
@@ -171,7 +173,7 @@ On Vercel, `vercel.json` rewrites unknown paths to `index.html` so client-side r
 
 ---
 
-## Planner logic
+## 🧠 Planner logic
 
 `generatePlan` in `src/services/plannerService.ts` is deterministic and explainable:
 
@@ -185,7 +187,7 @@ Missed slots are detected on load and requeued with their topics. Streaks count 
 
 ---
 
-## Design and accessibility
+## 🎨 Design and accessibility
 
 - Paper notebook palette: paper `#fbfaf4`, ruled blue `#b9d3e6`, margin red `#e8928f`, ink `#23325e`, highlighter `#ffe45c`, tape `#f3d9a4`.
 - Six named themes driven by CSS variables, all reachable from the palette menu beside the streak. **Paper & Ink** is the default white notebook; **Forest Notes**, **Honey & Bee**, **Lavender Press** and **Ocean Notes** recolour the same ruled-paper system; **Midnight Ink** is the optional chalk-on-blackboard dark theme. The choice persists, and charts, doodles, focus rings and hard shadows adapt.
@@ -197,7 +199,7 @@ Missed slots are detected on load and requeued with their topics. Streaks count 
 
 ---
 
-## Acceptance checklist
+## ✅ Acceptance checklist
 
 - [x] Guest login with pre-loaded Riya profile
 - [x] 4-step onboarding creates a plan
@@ -215,4 +217,6 @@ Missed slots are detected on load and requeued with their topics. Streaks count 
 
 ---
 
-Built for the BharatCode Build League. No API keys, accounts or setup are required to explore the full experience.
+🏆 Built for the **BharatCode Build League**. No API keys, accounts or setup are required to explore the full experience. 🚀
+
+📄 Released under the [MIT License](./LICENSE).

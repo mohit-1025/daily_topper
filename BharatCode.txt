@@ -1,0 +1,49 @@
+BHARATCODE BUILD LEAGUE — PROJECT SUBMISSION
+=============================================
+
+Project   : Daily Topper
+Tagline   : A study planner that turns your syllabus, confidence and exam
+            dates into a daily plan that actually adapts.
+Live demo : https://dailytopper.vercel.app
+Repository: https://github.com/mohit-1025/daily_topper
+Built by  : mohit-1025
+Year      : 2026
+License   : MIT (see LICENSE)
+
+WHAT IT IS
+----------
+Daily Topper is a complete, demo-ready study notebook for school, entrance
+exam and university students. It plans the day around available study hours,
+weak topics, backlog and exam dates, and rebuilds the plan whenever life
+gets in the way.
+
+KEY FEATURES
+------------
+- 4-step onboarding that generates the first plan
+- Day-by-day plan with month/week/day views and a mobile agenda
+- Persistent study timer; skipping a task asks for a reason and rebalances
+- Tasks are completed only after a 5-question check-in quiz
+- Study notes, revision sheets and weak-topic detection
+- Exam mode that schedules backwards from exam dates
+- Progress analytics: study time, completion, quiz trends, 12-week heatmap
+- Six paper-notebook themes with matching synthesised study soundscapes
+- Six languages: English, Hindi, Tamil, Telugu, Bengali, Marathi
+- Guest mode with a pre-loaded example notebook
+
+TECH STACK
+----------
+React 19, TypeScript, Vite, Tailwind CSS, Radix primitives, Zustand,
+React Router, Recharts, date-fns, Framer Motion, zod, i18next.
+Auth via Clerk (custom email + 6-digit code form); data via a local adapter
+(localStorage + IndexedDB) or Supabase when configured.
+
+ZERO SETUP
+----------
+npm install && npm run dev. No keys, database or build flags are required;
+guest mode and local accounts run entirely in the browser.
+
+AI DESIGN
+---------
+All AI calls go through one aiService that talks to a server-side API route,
+so no provider key ever reaches the browser. When no key is configured, or a
+call fails, a deterministic mock generator keeps every flow working.
