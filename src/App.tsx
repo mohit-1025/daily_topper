@@ -11,6 +11,8 @@ import { OnboardingPage } from '@/features/onboarding/OnboardingPage'
 import { PublicShell } from '@/features/public/PublicShell'
 import { NotFoundPage } from '@/features/not-found/NotFoundPage'
 import { useAppStore } from '@/store/useAppStore'
+import { useMusicStore } from '@/store/useMusicStore'
+import { themeMeta } from '@/lib/themes'
 
 const DashboardPage = lazy(() =>
   import('@/features/dashboard/DashboardPage').then((m) => ({ default: m.DashboardPage })),
@@ -104,7 +106,10 @@ function AuthRoute() {
   const profile = useAppStore((state) => state.profile)
 
   if (!hydrated) return <Splash />
-  if (session) return <Navigate to={profile?.onboarded ? '/dashboard' : '/onboarding'} replace />
+  // Guests can still visit /auth to create a real account.
+  if (session && !session.guest) {
+    return <Navigate to={profile?.onboarded ? '/dashboard' : '/onboarding'} replace />
+  }
   return <AuthPage />
 }
 
@@ -112,6 +117,7 @@ export default function App() {
   const hydrated = useAppStore((state) => state.hydrated)
   const session = useAppStore((state) => state.session)
   const language = useAppStore((state) => state.settings.language)
+  const theme = useAppStore((state) => state.theme)
   const { i18n } = useTranslation()
   const booted = useRef(false)
 
@@ -120,6 +126,19 @@ export default function App() {
     booted.current = true
     void useAppStore.getState().hydrate()
   }, [])
+
+  useEffect(() => {
+    const root = document.documentElement
+    const meta = themeMeta(theme)
+    root.dataset.theme = meta.id
+    root.style.colorScheme = meta.colorScheme
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', meta.metaColor)
+    useMusicStore.getState().syncTheme(theme)
+  }, [theme])
+
+  useEffect(() => {
+    if (!session) useMusicStore.getState().stop()
+  }, [session])
 
   useEffect(() => {
     if (i18n.language !== language) void i18n.changeLanguage(language)

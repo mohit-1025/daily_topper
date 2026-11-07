@@ -126,17 +126,23 @@ function RatingStars({
   onChange,
   size = 'md',
   showLabel = false,
+  stretch = false,
 }: {
   value: number
   onChange?: (value: number) => void
   size?: 'sm' | 'md' | 'lg'
   showLabel?: boolean
+  stretch?: boolean
 }) {
   const dimensions = size === 'sm' ? 'size-3.5' : size === 'lg' ? 'size-7' : 'size-5'
   const labels = ['Very Weak', 'Weak', 'Moderate', 'Strong', 'Very Strong']
   return (
-    <div className="flex items-center gap-2">
-      <div className="flex items-center gap-0.5" role={onChange ? 'radiogroup' : 'img'} aria-label={`Self rating ${value} out of 5`}>
+    <div className={cn('flex items-center gap-2', stretch && 'w-full')}>
+      <div
+        className={cn('flex items-center gap-0.5', stretch && 'w-full justify-between')}
+        role={onChange ? 'radiogroup' : 'img'}
+        aria-label={`Self rating ${value} out of 5`}
+      >
         {[1, 2, 3, 4, 5].map((star) => {
           const active = star <= value
           return onChange ? (

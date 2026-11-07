@@ -9,6 +9,7 @@ import { Input, Label, Textarea } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Progress, RatingStars } from '@/components/ui/misc'
 import { useAppStore } from '@/store/useAppStore'
+import { presetStudyWindow } from '@/services/plannerService'
 import { languages } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { EducationLevel, Language, SlotLength, StudyTime } from '@/types'
@@ -56,6 +57,8 @@ export function OnboardingPage() {
     academicGoal: profile?.academicGoal ?? '',
     studyHours: settings.studyHours,
     preferredStudyTime: settings.preferredStudyTime as StudyTime,
+    studyStart: settings.studyStart,
+    studyEnd: settings.studyEnd,
     slotLength: settings.slotLength as SlotLength,
     weeklyOffDay: settings.weeklyOffDay,
   })
@@ -71,6 +74,17 @@ export function OnboardingPage() {
   const progress = ((step + 1) / steps.length) * 100
   const suggestionsForLevel = useMemo(() => suggestions[form.educationLevel] ?? [], [form.educationLevel])
   const weekdays = ['days.sun', 'days.mon', 'days.tue', 'days.wed', 'days.thu', 'days.fri', 'days.sat']
+
+  const chooseStudyTime = (time: StudyTime) => {
+    const window = presetStudyWindow(time)
+    setForm((current) => ({
+      ...current,
+      preferredStudyTime: time,
+      studyStart: window.start,
+      studyEnd: window.end,
+    }))
+    setError('')
+  }
 
   const validateStep = () => {
     if (step === 0) {
@@ -137,6 +151,8 @@ export function OnboardingPage() {
           language: form.language,
           studyHours: form.studyHours,
           preferredStudyTime: form.preferredStudyTime,
+          studyStart: form.studyStart,
+          studyEnd: form.studyEnd,
           slotLength: form.slotLength,
           weeklyOffDay: form.weeklyOffDay,
         },
@@ -155,9 +171,6 @@ export function OnboardingPage() {
     <div className="ruled-page min-h-dvh bg-background">
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-5 sm:px-8">
         <Logo to="/dashboard" />
-        <Button variant="ghost" size="sm" type="button" onClick={() => navigate('/dashboard')}>
-          {t('common.skip')}
-        </Button>
       </header>
 
       <main className="mx-auto grid w-full max-w-6xl gap-8 px-4 pb-16 sm:px-8 lg:grid-cols-[260px_1fr] lg:gap-12">
@@ -379,7 +392,7 @@ export function OnboardingPage() {
                     <button
                       key={time}
                       type="button"
-                      onClick={() => set('preferredStudyTime', time)}
+                      onClick={() => chooseStudyTime(time)}
                       aria-pressed={form.preferredStudyTime === time}
                       className={cn(
                         choiceClass,

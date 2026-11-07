@@ -12,10 +12,11 @@ import { Input, Label, Textarea } from '@/components/ui/input'
 import { Avatar, AvatarFallback, Switch } from '@/components/ui/misc'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useAppStore } from '@/store/useAppStore'
+import { roundClockToFive, clockToMinutes } from '@/services/plannerService'
 import { ensureNotificationPermission } from '@/lib/feedback'
 import { languages } from '@/lib/i18n'
 import { downloadFile, initials, todayISO } from '@/lib/utils'
-import type { EducationLevel, Language, SlotLength, StudyTime } from '@/types'
+import type { EducationLevel, Language, SlotLength } from '@/types'
 
 const DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const
 
@@ -393,22 +394,35 @@ export function SettingsPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label className="mb-1 block">{t('settings.studyTime')}</Label>
-                <Select
-                  value={settings.preferredStudyTime}
-                  onValueChange={(value) => updateSettings({ preferredStudyTime: value as StudyTime })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="morning">Morning</SelectItem>
-                    <SelectItem value="afternoon">Afternoon</SelectItem>
-                    <SelectItem value="evening">Evening</SelectItem>
-                    <SelectItem value="night">Night</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="sm:col-span-2">
+                <Label className="mb-1 block">{t('settings.studyWindow')}</Label>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Input
+                    id="study-start"
+                    type="time"
+                    step={300}
+                    value={settings.studyStart}
+                    onChange={(event) =>
+                      updateSettings({ studyStart: roundClockToFive(event.target.value, settings.studyStart) })
+                    }
+                    className="h-10 w-32"
+                  />
+                  <span className="text-sm text-muted-foreground">{t('settings.windowTo')}</span>
+                  <Input
+                    id="study-end"
+                    type="time"
+                    step={300}
+                    value={settings.studyEnd}
+                    onChange={(event) =>
+                      updateSettings({ studyEnd: roundClockToFive(event.target.value, settings.studyEnd) })
+                    }
+                    className="h-10 w-32"
+                  />
+                </div>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">{t('settings.studyWindowHint')}</p>
+                {(clockToMinutes(settings.studyEnd) ?? 0) <= (clockToMinutes(settings.studyStart) ?? 0) && (
+                  <p className="mt-1 text-sm font-semibold text-destructive">{t('settings.windowInvalid')}</p>
+                )}
               </div>
               <div>
                 <Label className="mb-1 block">{t('settings.offDay')}</Label>

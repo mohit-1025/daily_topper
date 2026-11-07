@@ -3,7 +3,8 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
+  :root,
+  :root[data-theme='paper'] {
     --paper: #fbfaf4;
     --rule: #b9d3e6;
     --margin-line: #e8928f;
@@ -19,31 +20,241 @@
     --highlighter-hsl: 50 100% 68%;
     --tape-hsl: 40 77% 80%;
 
-    --background: 51 47% 97%;
-    --foreground: 225 46% 25%;
+    --background: var(--paper-hsl);
+    --foreground: var(--ink-hsl);
     --card: 48 60% 99%;
-    --card-foreground: 225 46% 25%;
+    --card-foreground: var(--ink-hsl);
     --popover: 48 60% 99%;
-    --popover-foreground: 225 46% 25%;
-    --primary: 225 46% 25%;
-    --primary-foreground: 51 47% 97%;
+    --popover-foreground: var(--ink-hsl);
+    --primary: var(--ink-hsl);
+    --primary-foreground: var(--paper-hsl);
     --primary-soft: 50 100% 90%;
     --secondary: 40 77% 90%;
-    --secondary-foreground: 225 46% 25%;
+    --secondary-foreground: var(--ink-hsl);
     --muted: 45 25% 92%;
     --muted-foreground: 225 22% 40%;
     --accent: 50 100% 68%;
     --accent-foreground: 225 46% 20%;
     --destructive: 2 58% 40%;
-    --destructive-foreground: 51 47% 97%;
+    --destructive-foreground: var(--paper-hsl);
     --success: 205 45% 34%;
     --warning: 48 65% 34%;
     --info: 205 47% 38%;
-    --border: 205 47% 81%;
+    --border: var(--rule-hsl);
     --input: 205 40% 70%;
     --ring: 48 90% 48%;
     --radius: 0.75rem;
-    --sidebar: 51 47% 97%;
+    --sidebar: var(--paper-hsl);
+  }
+
+  /* Forest Notes — sage paper, pine ink */
+  :root[data-theme='forest'] {
+    --paper: #f3f7ee;
+    --rule: #b9d2bf;
+    --margin-line: #d98c7a;
+    --ink: #22392c;
+    --highlighter: #d9e8a8;
+    --tape: #d9c79a;
+
+    --paper-hsl: 87 36% 95%;
+    --rule-hsl: 134 22% 77%;
+    --margin-line-hsl: 11 56% 66%;
+    --ink-hsl: 146 25% 18%;
+    --highlighter-hsl: 74 58% 78%;
+    --tape-hsl: 43 45% 73%;
+
+    --background: var(--paper-hsl);
+    --foreground: var(--ink-hsl);
+    --card: 84 56% 98%;
+    --card-foreground: var(--ink-hsl);
+    --popover: 84 56% 98%;
+    --popover-foreground: var(--ink-hsl);
+    --primary: var(--ink-hsl);
+    --primary-foreground: var(--paper-hsl);
+    --primary-soft: 95 36% 90%;
+    --secondary: 81 32% 90%;
+    --secondary-foreground: var(--ink-hsl);
+    --muted: 88 28% 91%;
+    --muted-foreground: 132 11% 35%;
+    --accent: 77 56% 75%;
+    --accent-foreground: 146 25% 18%;
+    --destructive: 8 46% 44%;
+    --destructive-foreground: var(--paper-hsl);
+    --success: 143 39% 30%;
+    --warning: 42 63% 33%;
+    --info: 193 39% 34%;
+    --border: var(--rule-hsl);
+    --input: 132 18% 67%;
+    --ring: 87 28% 48%;
+    --sidebar: var(--paper-hsl);
+  }
+
+  /* Honey & Bee — warm honey paper, amber ink */
+  :root[data-theme='honey'] {
+    --paper: #fdf6e2;
+    --rule: #ecd6a4;
+    --margin-line: #e08a5a;
+    --ink: #4a3312;
+    --highlighter: #ffd45e;
+    --tape: #f0c96b;
+
+    --paper-hsl: 44 87% 94%;
+    --rule-hsl: 42 65% 78%;
+    --margin-line-hsl: 21 68% 62%;
+    --ink-hsl: 35 61% 18%;
+    --highlighter-hsl: 44 100% 68%;
+    --tape-hsl: 42 82% 68%;
+
+    --background: var(--paper-hsl);
+    --foreground: var(--ink-hsl);
+    --card: 44 100% 97%;
+    --card-foreground: var(--ink-hsl);
+    --popover: 44 100% 97%;
+    --popover-foreground: var(--ink-hsl);
+    --primary: var(--ink-hsl);
+    --primary-foreground: var(--paper-hsl);
+    --primary-soft: 45 90% 85%;
+    --secondary: 42 78% 85%;
+    --secondary-foreground: var(--ink-hsl);
+    --muted: 43 65% 88%;
+    --muted-foreground: 40 35% 32%;
+    --accent: 44 100% 68%;
+    --accent-foreground: 35 68% 15%;
+    --destructive: 11 53% 42%;
+    --destructive-foreground: var(--paper-hsl);
+    --success: 80 57% 28%;
+    --warning: 38 75% 31%;
+    --info: 200 46% 34%;
+    --border: var(--rule-hsl);
+    --input: 40 55% 69%;
+    --ring: 43 80% 47%;
+    --sidebar: var(--paper-hsl);
+  }
+
+  /* Lavender Press — lilac paper, plum ink */
+  :root[data-theme='lavender'] {
+    --paper: #faf6ff;
+    --rule: #d8cbea;
+    --margin-line: #c98fb8;
+    --ink: #352a5c;
+    --highlighter: #e3ccff;
+    --tape: #dccaf0;
+
+    --paper-hsl: 267 100% 98%;
+    --rule-hsl: 265 42% 86%;
+    --margin-line-hsl: 318 35% 67%;
+    --ink-hsl: 253 37% 26%;
+    --highlighter-hsl: 267 100% 90%;
+    --tape-hsl: 268 56% 87%;
+
+    --background: var(--paper-hsl);
+    --foreground: var(--ink-hsl);
+    --card: 270 100% 99%;
+    --card-foreground: var(--ink-hsl);
+    --popover: 270 100% 99%;
+    --popover-foreground: var(--ink-hsl);
+    --primary: var(--ink-hsl);
+    --primary-foreground: var(--paper-hsl);
+    --primary-soft: 266 76% 94%;
+    --secondary: 270 53% 93%;
+    --secondary-foreground: var(--ink-hsl);
+    --muted: 267 35% 94%;
+    --muted-foreground: 257 17% 40%;
+    --accent: 268 75% 87%;
+    --accent-foreground: 253 37% 26%;
+    --destructive: 346 37% 46%;
+    --destructive-foreground: var(--paper-hsl);
+    --success: 162 26% 33%;
+    --warning: 39 62% 33%;
+    --info: 218 35% 42%;
+    --border: var(--rule-hsl);
+    --input: 267 35% 78%;
+    --ring: 265 34% 58%;
+    --sidebar: var(--paper-hsl);
+  }
+
+  /* Ocean Notes — mist paper, tide ink */
+  :root[data-theme='ocean'] {
+    --paper: #f1f8fa;
+    --rule: #b7d9e4;
+    --margin-line: #e08f8f;
+    --ink: #17394a;
+    --highlighter: #a9e8e0;
+    --tape: #cfe6ea;
+
+    --paper-hsl: 193 47% 96%;
+    --rule-hsl: 195 45% 81%;
+    --margin-line-hsl: 0 57% 72%;
+    --ink-hsl: 200 53% 19%;
+    --highlighter-hsl: 172 58% 79%;
+    --tape-hsl: 189 39% 86%;
+
+    --background: var(--paper-hsl);
+    --foreground: var(--ink-hsl);
+    --card: 192 71% 99%;
+    --card-foreground: var(--ink-hsl);
+    --popover: 192 71% 99%;
+    --popover-foreground: var(--ink-hsl);
+    --primary: var(--ink-hsl);
+    --primary-foreground: var(--paper-hsl);
+    --primary-soft: 190 49% 90%;
+    --secondary: 193 44% 92%;
+    --secondary-foreground: var(--ink-hsl);
+    --muted: 194 35% 93%;
+    --muted-foreground: 197 20% 36%;
+    --accent: 172 58% 79%;
+    --accent-foreground: 197 57% 16%;
+    --destructive: 0 39% 48%;
+    --destructive-foreground: var(--paper-hsl);
+    --success: 167 39% 30%;
+    --warning: 39 62% 33%;
+    --info: 196 54% 30%;
+    --border: var(--rule-hsl);
+    --input: 194 37% 72%;
+    --ring: 192 53% 38%;
+    --sidebar: var(--paper-hsl);
+  }
+
+  /* Midnight Ink — chalk on a blackboard */
+  :root[data-theme='midnight'] {
+    --paper: #1b2233;
+    --rule: #2f3b55;
+    --margin-line: #c27b7e;
+    --ink: #ece5d3;
+    --highlighter: #b8324f;
+    --tape: #5c2b3b;
+
+    --paper-hsl: 222 31% 15%;
+    --rule-hsl: 222 29% 26%;
+    --margin-line-hsl: 358 37% 62%;
+    --ink-hsl: 43 40% 88%;
+    --highlighter-hsl: 347 57% 46%;
+    --tape-hsl: 340 36% 26%;
+
+    --background: 223 38% 11%;
+    --foreground: var(--ink-hsl);
+    --card: 223 32% 15%;
+    --card-foreground: var(--ink-hsl);
+    --popover: 223 32% 15%;
+    --popover-foreground: var(--ink-hsl);
+    --primary: var(--ink-hsl);
+    --primary-foreground: 223 40% 12%;
+    --primary-soft: 223 27% 23%;
+    --secondary: 343 23% 18%;
+    --secondary-foreground: var(--ink-hsl);
+    --muted: 222 26% 17%;
+    --muted-foreground: 220 19% 72%;
+    --accent: 347 57% 46%;
+    --accent-foreground: var(--ink-hsl);
+    --destructive: 0 77% 74%;
+    --destructive-foreground: 223 40% 12%;
+    --success: 193 45% 64%;
+    --warning: 44 83% 65%;
+    --info: 210 70% 73%;
+    --border: var(--rule-hsl);
+    --input: 222 25% 31%;
+    --ring: 342 70% 66%;
+    --sidebar: 223 38% 11%;
   }
 
   * {
@@ -81,7 +292,7 @@
 
   ::selection {
     background: hsl(var(--highlighter-hsl));
-    color: #23325e;
+    color: hsl(var(--foreground));
   }
 
   :focus-visible {
@@ -185,7 +396,7 @@
     transform: translateX(-50%) rotate(3deg);
     background: var(--tape);
     opacity: 0.85;
-    box-shadow: 0 1px 0 rgb(35 50 94 / 0.12);
+    box-shadow: 0 1px 0 hsl(var(--foreground) / 0.12);
     pointer-events: none;
     z-index: 1;
   }
@@ -347,6 +558,41 @@
   .hand {
     font-family: 'Patrick Hand', 'Segoe Print', 'Comic Sans MS', cursive;
   }
+
+  /* Three-bar equalizer shown while a study track is playing */
+  .music-bars {
+    display: inline-flex;
+    height: 1rem;
+    align-items: flex-end;
+    gap: 3px;
+  }
+
+  .music-bars span {
+    width: 2px;
+    height: 100%;
+    border-radius: 1px;
+    background: currentColor;
+    transform-origin: bottom;
+    animation: music-bounce 900ms ease-in-out infinite;
+  }
+
+  .music-bars span:nth-child(2) {
+    animation-delay: 140ms;
+  }
+
+  .music-bars span:nth-child(3) {
+    animation-delay: 280ms;
+  }
+
+  @keyframes music-bounce {
+    0%,
+    100% {
+      transform: scaleY(0.35);
+    }
+    50% {
+      transform: scaleY(1);
+    }
+  }
   .underline-highlighter {
     background-image: linear-gradient(
       transparent 38%,
@@ -398,6 +644,10 @@
   .rotate-paper,
   .rotate-paper-alt {
     transform: none;
+  }
+  .music-bars span {
+    animation: none;
+    transform: scaleY(0.7);
   }
 }
 

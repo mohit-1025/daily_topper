@@ -606,7 +606,7 @@ export function SubjectDetailPage() {
           </DialogHeader>
           <DialogBody>
             <div className="border-2 border-dashed border-border p-4">
-              <RatingStars value={rating} onChange={setRating} size="lg" showLabel />
+              <RatingStars value={rating} onChange={setRating} size="lg" stretch />
               <div className="mt-2 flex justify-between text-sm text-muted-foreground">
                 <span>{t('subjects.veryWeak')}</span>
                 <span>{ratingLabels[rating - 1]}</span>

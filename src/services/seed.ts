@@ -321,7 +321,7 @@ function makeHistory(topics: Topic[], attempts: QuizAttempt[], now: Date) {
       const subjectTopics = topics.filter((t) => t.subjectId === subject)
       const picked = [subjectTopics[(offset + i) % subjectTopics.length], subjectTopics[(offset + i + 2) % subjectTopics.length]]
       const status: StudySlot['status'] = dayStatuses[i % dayStatuses.length]
-      const startMinutes = [7 * 60 + 30, 15 * 60, 18 * 60 + 30][i]
+      const startMinutes = [17 * 60, 18 * 60 + 15, 19 * 60 + 30][i]
       const linkedAttempt =
         status === 'done'
           ? attempts.find(
@@ -349,14 +349,12 @@ function makeHistory(topics: Topic[], attempts: QuizAttempt[], now: Date) {
 }
 
 function makeTodaySlots(attempts: QuizAttempt[], now: Date): StudySlot[] {
-  const nowMinutes = now.getHours() * 60 + now.getMinutes()
   const today = todayISO(now)
-  const doneStart = Math.max(6 * 60, nowMinutes - 150)
-  const slots: StudySlot[] = [
+  return [
     {
       id: 'slot_today_done',
       date: today,
-      start: `${String(Math.floor(doneStart / 60)).padStart(2, '0')}:${String(doneStart % 60).padStart(2, '0')}`,
+      start: '17:00',
       duration: 45,
       subjectId: 'sub_phy',
       topicIds: ['t_phy_2'],
@@ -365,33 +363,27 @@ function makeTodaySlots(attempts: QuizAttempt[], now: Date): StudySlot[] {
       completedAt: new Date(now.getTime() - 90 * 60 * 1000).toISOString(),
       quizAttemptId: attempts[0]?.id,
     },
-  ]
-  const firstStart = Math.max(7 * 60, nowMinutes + 25)
-  if (firstStart + 45 <= 23 * 60 + 15) {
-    slots.push({
+    {
       id: 'slot_today_next',
       date: today,
-      start: `${String(Math.floor(firstStart / 60)).padStart(2, '0')}:${String(firstStart % 60).padStart(2, '0')}`,
+      start: '18:00',
       duration: 45,
       subjectId: 'sub_chem',
       topicIds: ['t_chem_1', 't_chem_2'],
       status: 'scheduled',
       source: 'normal',
-    })
-  }
-  if (firstStart + 120 <= 23 * 60 + 15) {
-    slots.push({
+    },
+    {
       id: 'slot_today_later',
       date: today,
-      start: `${String(Math.floor((firstStart + 120) / 60)).padStart(2, '0')}:${String((firstStart + 120) % 60).padStart(2, '0')}`,
+      start: '19:00',
       duration: 60,
       subjectId: 'sub_math',
       topicIds: ['t_math_5', 't_math_7'],
       status: 'scheduled',
       source: 'normal',
-    })
-  }
-  return slots
+    },
+  ]
 }
 
 export function createSeedData(now = new Date()): AppData {
@@ -491,6 +483,8 @@ export function createSeedData(now = new Date()): AppData {
     language: 'en',
     studyHours: 4,
     preferredStudyTime: 'evening',
+    studyStart: '17:00',
+    studyEnd: '21:00',
     slotLength: 45,
     weeklyOffDay: 0,
     reminders: true,

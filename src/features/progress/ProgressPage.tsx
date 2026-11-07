@@ -44,18 +44,18 @@ import { cn, formatDuration, longDate, percent, prettyDate, shortWeekday, todayI
 import type { RevisionSheet, Subject, Topic } from '@/types'
 
 const CHART_COLORS = {
-  ink: '#23325e',
-  rule: '#b9d3e6',
-  margin: '#e8928f',
-  highlighter: '#ffe45c',
-  tape: '#f3d9a4',
+  ink: 'hsl(var(--foreground))',
+  rule: 'hsl(var(--rule-hsl))',
+  margin: 'hsl(var(--margin-line-hsl))',
+  highlighter: 'hsl(var(--highlighter-hsl))',
+  tape: 'hsl(var(--tape-hsl))',
 }
 
 const axisTick = { fontSize: 11, fill: 'hsl(var(--muted-foreground))' }
 const tooltipStyle = {
   borderRadius: 4,
   border: '2px solid hsl(var(--foreground))',
-  background: '#fbfaf4',
+  background: 'hsl(var(--paper-hsl))',
   fontSize: 13,
   color: 'hsl(var(--foreground))',
   boxShadow: '3px 3px 0 hsl(var(--foreground) / 0.2)',

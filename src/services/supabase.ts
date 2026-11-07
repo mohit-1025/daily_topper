@@ -1,0 +1,21 @@
+import { createClient } from '@supabase/supabase-js'
+
+const url = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim()
+const anonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined)?.trim()
+
+export const supabase =
+  url && anonKey
+    ? createClient(url, anonKey, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+          storageKey: 'dt-sb-auth-v1',
+        },
+      })
+    : null
+
+/** Where Supabase sends people after they open the confirmation email. */
+export function authRedirectUrl(): string {
+  return `${window.location.origin}/auth`
+}
